@@ -67,17 +67,17 @@ INPUT = (S0_m, S0_n, I0_m, I0_n, R0_m, R0_n)
 
 
 def rate_to_infect(Im, In):
-    lam = beta * (In + (1 - p) * Im)
+    lam = beta * (In + (1 - p) * Im)  # todo: note you could directly return `lam`
     return lam
 
 
-def rate_to_mask(Sm, Im, In, Rm):
+def rate_to_mask(Sm, Im, In, Rm):  # todo: it *might* be faster to pre-add then pass things e.g. on line 95 `rate_to_mask(tot_mask_pop=V[0]+V[2]+V[4], tot_inf=V[2]+V[3])` and corresponding changes here
     omega = w1 * (Sm + Im + Rm) + w2 * (Im + In)
     # omega = w1 + w2
     return omega
 
 
-def rate_to_no_mask(Sn, Im, In, Rn):
+def rate_to_no_mask(Sn, Im, In, Rn):  # todo: if make change suggested on line 74, do 1-summed terms to pass to here, call them `total_no_mask_pop` and `tot_uninf` or similar
     alpha = a1 * (Sn + In + Rn) + a2 * (1 - (Im + In))
     # alpha = a1 + a2
     return alpha
