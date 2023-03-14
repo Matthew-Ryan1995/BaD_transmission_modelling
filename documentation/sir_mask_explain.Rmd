@@ -58,8 +58,8 @@ pacman::p_load(tidyverse)
 Further parameters that will pop up
 
 - $\beta$ is the transmission rate
-- $c$ is the reduction in chance of catching disease if S is wearing a mask
-- $p$ is the reduction in chance of spreading disease if I is wearing a mask
+- $c$ is the reduction in chance of catching disease if S is wearing a mask # this description is inconsistent with code comment definition and `1-c` model structure (I think)
+- $p$ is the reduction in chance of spreading disease if I is wearing a mask # this description is inconsistent with code comment definition and `1-p` model structure (I think)
 - $\alpha_1$ is the rate of transition to no mask based on social influence of no mask
 - $\alpha_2$ is the rate of transition to no mask based on fear of disease
 - $\omega_1$ is the rate of transition to mask based on social influence of  mask
