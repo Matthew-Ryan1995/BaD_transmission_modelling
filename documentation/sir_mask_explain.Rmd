@@ -13,10 +13,9 @@ pacman::p_load(tidyverse)
 
 ## Basic idea
 
-- Simple SIR model with extra compartments for S-masked, S-no mask, I-masked, I-no mask.
+- Simple SIR model disease progression with strata for mask-wearing status, resulting in compartments for S-masked, S-no mask, I-masked, I-no mask, R-masked, R-no mask.
 - Supposing wearing a mask reduces both susceptibility and infectiousness (depending on who is wearing it)
-- Assume transitions between masked-not masked based on social influence and fear of disease
-- Assume all recovered do not wear mask
+- Assume transitions between masked-not masked based on social influence and fear of disease (noting FD type "infection" structure for fear of disease, when could actually be more about absolute number/density dependence -- interesting question to explore how structure affects dynamics)
 - Work in proportions such that S + I + R = 1
 - no demography
 
