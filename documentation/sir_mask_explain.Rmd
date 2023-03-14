@@ -50,14 +50,14 @@ pacman::p_load(tidyverse)
 
 ## Parameter description
 
-- $\lambda$ is the transmission rate, assuming a form of FD
+- $\lambda$ is the force of infection, assuming a form of FD
 - $\frac{1}{\gamma}$ is average rate of recovery
 - $\alpha$ is transition rate from wearing a mask to not wearing a mask
 - $\omega$ is transition rate from not wearing a mask to wearing a mask
 
 Further parameters that will pop up
 
-- $\beta$ is the infectiousness
+- $\beta$ is the transmission rate
 - $c$ is the reduction in chance of catching disease if S is wearing a mask
 - $p$ is the reduction in chance of spreading disease if I is wearing a mask
 - $\alpha_1$ is the rate of transition to no mask based on social influence of no mask
