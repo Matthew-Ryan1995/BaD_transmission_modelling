@@ -137,7 +137,8 @@ def cal_r0(t):
 
 # %% Run ODE-int
 
-RES = spi.odeint(diff_eqs, INPUT, t_range)
+RES = spi.odeint(diff_eqs, INPUT, t_range)  # fixme: the documentation says to use spi.solve_ivp for new code, noting opposite orders of expected function inputs etc
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html
 
 R0 = list(map(cal_r0, range(len(t_range))))
 
