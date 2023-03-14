@@ -1,0 +1,94 @@
+---
+title: "SIR and mask"
+output:
+  pdf_document: 
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+pacman::p_load(tidyverse)
+```
+
+## Basic idea
+
+- Simple SIR model with extra compartments for S-masked, S-no mask, I-masked, I-no mask.
+- Supposing wearing a mask reduces both susceptibility and infectiousness (depending on who is wearing it)
+- Assume transitions between masked-not masked based on social influence and fear of disease
+- Assume all recovered do not wear mask
+- Work in proportions such that S + I + R = 1
+- no demography
+
+## State diagram
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm and 1cm,>=stealth',auto, every place/.style={draw}]
+    
+    \node [place] (Sm) {$S_M$};
+    \node [place] (Sn) [below=of Sm] {$S_{N}$};
+    \node [place] (Im) [node distance=2.5cm,right=of Sm] {$I_M$};
+    \node [place] (In) [below=of Im] {$I_{N}$};
+    \node[place] (Rm) [node distance=2.5cm, right=of Im] {$R_M$};
+    \node[place] (Rn) [below=of Rm] {$R_N$};
+    
+    \path[->] (Sm) edge [bend left] node {$\alpha$} (Sn);
+    \path[->] (Sn) edge [bend left] node {$\omega$} (Sm);
+    \path[->] (Im) edge [bend left] node {$\alpha$} (In);
+    \path[->] (In) edge [bend left] node {$\omega$} (Im);
+    \path[->] (Rm) edge [bend left] node {$\alpha$} (Rn);
+    \path[->] (Rn) edge [bend left] node {$\omega$} (Rm);
+    
+    \path[->] (Sm) edge node {$\lambda$} (Im);
+    \path[->] (Sn) edge node {$\lambda$} (In);
+    \path[->] (In) edge node {$\gamma$} (Rn);
+    \path[->] (Im) edge node {$\gamma$} (Rm);
+    
+
+\end{tikzpicture}
+\end{center}
+
+## Parameter description
+
+- $\lambda$ is the transmission rate, assuming a form of FD
+- $\frac{1}{\gamma}$ is average rate of recovery
+- $\alpha$ is transition rate from wearing a mask to not wearing a mask
+- $\omega$ is transition rate from not wearing a mask to wearing a mask
+
+Further parameters that will pop up
+
+- $\beta$ is the infectiousness
+- $c$ is the reduction in chance of catching disease if S is wearing a mask
+- $p$ is the reduction in chance of spreading disease if I is wearing a mask
+- $\alpha_1$ is the rate of transition to no mask based on social influence of no mask
+- $\alpha_2$ is the rate of transition to no mask based on fear of disease
+- $\omega_1$ is the rate of transition to mask based on social influence of  mask
+- $\omega_2$ is the rate of transition to no mask based on fear of disease
+
+
+## Basic system of ODEs
+
+$$
+  \begin{aligned}
+    \dot{S}_{N} & =  -\lambda S_{N} + \alpha S_{M} - \omega S_{N}\\
+    \dot{S}_{M} & =  -\lambda (1-c) S_{M} - \alpha S_{M} + \omega S_{N}\\
+    \dot{I}_{N} & = \lambda S_{N} + \alpha I_{M} - \omega I_{N} - \gamma I_{N}\\
+    \dot{I}_{M} & = \lambda (1-c) S_{M} - \alpha I_{M} + \omega I_{N} - \gamma I_{M}\\
+    \dot{R}_N & = \gamma I_{N} + \alpha R_{M} - \omega R_{N} \, \\
+    \dot{R}_M & = \gamma I_{M}  - \alpha R_{M} + \omega R_{N}\, ,
+  \end{aligned}
+$$
+
+where
+
+$$
+  \begin{aligned}
+    \lambda & = \beta \left( I_{N} + (1-p) I_M \right)\\
+    \omega & = \omega_1 (S_M + I_M + R_M) + \omega_2(I_M + I_{N})\\
+    \alpha & = \alpha_1 (S_{N} + I_{N} + R_N) + \alpha_2(1 - (I_M + I_{N}))\, .\\
+  \end{aligned}
+$$
+
+
+
+
