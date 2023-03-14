@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 
 # %% Parameters and inital conditions
 
-# Model parameters
+# Model parameters  # todo: I highly recommend starting a parameter file (csv, json, whatever data format) ASAP, and noting symbol, description, expected value, min, max values, and any sources. You can then read them into python and generate tex tables from single source to change.
 beta = 0.5  # Infectiousness of disease
 c = 0.5  # Effectiveness of susc. wearing mask
 p = 0.7  # Effectiveness of infected wearing mask
