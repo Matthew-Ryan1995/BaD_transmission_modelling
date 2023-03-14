@@ -84,7 +84,10 @@ def rate_to_no_mask(Sn, Im, In, Rn):
 
 
 def diff_eqs(INP, t):
-    '''The main set of equations'''
+    '''The main set of equations.
+    :params INP: previous population values (list of 6 values)
+    :params t: current time (scalar)
+    '''
     Y = np.zeros((len(INP)))
     V = INP
 
