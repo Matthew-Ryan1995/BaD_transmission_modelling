@@ -95,12 +95,12 @@ def diff_eqs(INP, t):
     omega = rate_to_mask(V[0], V[2], V[3], V[4])
     alpha = rate_to_no_mask(V[1], V[2], V[3], V[5])
 
-    Y[0] = -lam * (1 - c) * V[0] - alpha * V[0] + omega * V[1]
-    Y[1] = -lam * V[1] + alpha * V[0] - omega * V[1] + nu * V[4]
-    Y[2] = lam * (1 - c) * V[0] - alpha * V[2] + omega * V[3] - gamma * V[2]
-    Y[3] = lam * V[1] + alpha * V[2] - omega * V[3] - gamma * V[3]
-    Y[4] = gamma * (V[2]) - nu * V[4] - alpha * V[4] + omega * V[5]
-    Y[5] = gamma * (V[3]) - nu * V[5] + alpha * V[4] - omega * V[5]
+    Y[0] = -lam * (1 - c) * V[0] - alpha * V[0] + omega * V[1] + nu * V[4]  # S_m
+    Y[1] = -lam * V[1] + alpha * V[0] - omega * V[1] + nu * V[5]  # S_n
+    Y[2] = lam * (1 - c) * V[0] - alpha * V[2] + omega * V[3] - gamma * V[2]  # I_m
+    Y[3] = lam * V[1] + alpha * V[2] - omega * V[3] - gamma * V[3]  # I_n
+    Y[4] = gamma * (V[2]) - nu * V[4] - alpha * V[4] + omega * V[5]  # R_m
+    Y[5] = gamma * (V[3]) - nu * V[5] + alpha * V[4] - omega * V[5]  # R_n
     return Y   # For odeint
 
 # %%
