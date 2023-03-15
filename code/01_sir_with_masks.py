@@ -57,7 +57,7 @@ t_range = np.arange(t_start, t_end+t_inc, t_inc)
 # Inital parameters
 S0_m = 0.
 I0_m = 0
-I0_n = 1e-1
+I0_n = 1e-2  # 10% of the population starting infectious is quite high
 R0_n = 0
 R0_m = 0
 S0_n = 1 - S0_m - I0_m - I0_n - R0_n - R0_m
