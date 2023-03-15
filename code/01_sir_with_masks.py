@@ -65,25 +65,26 @@ INPUT = (S0_m, S0_n, I0_m, I0_n, R0_m, R0_n)
 
 # %% Differential equations set up
 
+# Change actioned
+
 
 def rate_to_infect(Im, In):
-    lam = beta * (In + (1 - p) * Im)  # todo: note you could directly return `lam`
-    return lam
+    return beta * (In + (1 - p) * Im)
 
 
-def rate_to_mask(Sm, Im, In, Rm):  # todo: it *might* be faster to pre-add then pass things e.g. on line 95 `rate_to_mask(tot_mask_pop=V[0]+V[2]+V[4], tot_inf=V[2]+V[3])` and corresponding changes here
-    omega = w1 * (Sm + Im + Rm) + w2 * (Im + In)
-    # omega = w1 + w2
-    return omega
+# todo: it *might* be faster to pre-add then pass things e.g. on line 95 `rate_to_mask(tot_mask_pop=V[0]+V[2]+V[4], tot_inf=V[2]+V[3])` and corresponding changes here
+# Change actioned
+def rate_to_mask(tot_mask_prop, tot_inf):
+    return w1 * (tot_mask_prop) + w2 * (tot_inf)
 
 
-def rate_to_no_mask(Sn, Im, In, Rn):  # todo: if make change suggested on line 74, do 1-summed terms to pass to here, call them `total_no_mask_pop` and `tot_uninf` or similar
-    alpha = a1 * (Sn + In + Rn) + a2 * (1 - (Im + In))
-    # alpha = a1 + a2
-    return alpha
+# todo: if make change suggested on line 74, do 1-summed terms to pass to here, call them `total_no_mask_pop` and `tot_uninf` or similar
+# Change actioned
+def rate_to_no_mask(tot_no_mask_prop, tot_uninf):
+    return a1 * (tot_no_mask_prop) + a2 * (tot_uninf)
 
 
-def diff_eqs(INP, t):
+def diff_eqs(t, INP):
     '''The main set of equations.
     :params INP: previous population values (list of 6 values)
     :params t: current time (scalar)
@@ -91,13 +92,19 @@ def diff_eqs(INP, t):
     Y = np.zeros((len(INP)))
     V = INP
 
-    lam = rate_to_infect(V[2], V[3])
-    omega = rate_to_mask(V[0], V[2], V[3], V[4])
-    alpha = rate_to_no_mask(V[1], V[2], V[3], V[5])
+    tot_mask_prop = V[0] + V[2] + V[4]
+    tot_inf = V[2] + V[3]
 
-    Y[0] = -lam * (1 - c) * V[0] - alpha * V[0] + omega * V[1] + nu * V[4]  # S_m
+    lam = rate_to_infect(V[2], V[3])
+    omega = rate_to_mask(tot_mask_prop=tot_mask_prop, tot_inf=tot_inf)
+    alpha = rate_to_no_mask(tot_no_mask_prop=1 -
+                            tot_mask_prop, tot_uninf=1 - tot_inf)
+
+    Y[0] = -lam * (1 - c) * V[0] - alpha * V[0] + \
+        omega * V[1] + nu * V[4]  # S_m
     Y[1] = -lam * V[1] + alpha * V[0] - omega * V[1] + nu * V[5]  # S_n
-    Y[2] = lam * (1 - c) * V[0] - alpha * V[2] + omega * V[3] - gamma * V[2]  # I_m
+    Y[2] = lam * (1 - c) * V[0] - alpha * V[2] + \
+        omega * V[3] - gamma * V[2]  # I_m
     Y[3] = lam * V[1] + alpha * V[2] - omega * V[3] - gamma * V[3]  # I_n
     Y[4] = gamma * (V[2]) - nu * V[4] - alpha * V[4] + omega * V[5]  # R_m
     Y[5] = gamma * (V[3]) - nu * V[5] + alpha * V[4] - omega * V[5]  # R_n
@@ -106,18 +113,22 @@ def diff_eqs(INP, t):
 # %%
 
 
-def ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, INP):  # todo: why not change `INP` to `V`?
+# todo: why not change `INP` to `V`?
+# Changed to Y to distinguish from V matrix
+def ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, Y):
 
-    V = INP
+    Im = Y[2]
+    In = Y[3]
 
-    Im = V[2]
-    In = V[3]
+    tot_mask_prop = Y[0] + Y[2] + Y[4]
+    tot_inf = Y[2] + Y[3]
 
-    omega = rate_to_mask(V[0], V[2], V[3], V[4])
-    alpha = rate_to_no_mask(V[1], V[2], V[3], V[5])
+    omega = rate_to_mask(tot_mask_prop=tot_mask_prop, tot_inf=tot_inf)
+    alpha = rate_to_no_mask(tot_no_mask_prop=1 -
+                            tot_mask_prop, tot_uninf=1 - tot_inf)
 
     F = np.array(
-        [[beta * (1-c) * (1 - p) * V[0], beta * (1-c) * V[0]], [beta * (1 - p) * V[1], beta * V[1]]])
+        [[beta * (1-c) * (1 - p) * Y[0], beta * (1-c) * Y[0]], [beta * (1 - p) * Y[1], beta * Y[1]]])
 
     V = np.array([[alpha + gamma - a2 * Im - (w1 + w2) * In, (a1 - a2) * Im - omega - w2 * In],
                   [(w1 + w2) * In - alpha + a2 * Im, omega + gamma - (a1 - a2) * Im - w2 * In]])
@@ -131,14 +142,20 @@ def ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, INP):  # todo: wh
 
 
 def cal_rt(t):
-    ANS = ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, RES[t, :])
+    ANS = ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, dat[t, :])
     return ANS
 
 
 # %% Run ODE-int
 
-RES = spi.odeint(diff_eqs, INPUT, t_range)  # fixme: the documentation says to use spi.solve_ivp for new code, noting opposite orders of expected function inputs etc
+# Change actioned
+# fixme: the documentation says to use spi.solve_ivp for new code, noting opposite orders of expected function inputs etc
+# RES = spi.odeint(diff_eqs, INPUT, t_range)
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html
+
+RES = spi.solve_ivp(diff_eqs, [t_start, t_end],  INPUT)
+dat = RES.y.T
+t_range = RES.t
 
 Rt = list(map(cal_rt, range(len(t_range))))
 
@@ -153,12 +170,12 @@ plt.show()
 
 # Everything everywhere all at once
 plt.figure()
-plt.plot(RES[:, 0], label="Susceptibles - Mask")
-plt.plot(RES[:, 1], label="Susceptibles - No Mask")
-plt.plot(RES[:, 2], label="Infectious - Mask")
-plt.plot(RES[:, 3], label="Infectious - No Mask")
-plt.plot(RES[:, 4], label="Recovereds - Mask")
-plt.plot(RES[:, 5], label="Recovereds - No Mask")
+plt.plot(dat[:, 0], label="Susceptibles - Mask")
+plt.plot(dat[:, 1], label="Susceptibles - No Mask")
+plt.plot(dat[:, 2], label="Infectious - Mask")
+plt.plot(dat[:, 3], label="Infectious - No Mask")
+plt.plot(dat[:, 4], label="Recovereds - Mask")
+plt.plot(dat[:, 5], label="Recovereds - No Mask")
 plt.legend()
 plt.xlabel("time")
 plt.ylabel("proportion")
@@ -166,9 +183,9 @@ plt.show()
 
 # S I R
 plt.figure()
-plt.plot(RES[:, 0] + RES[:, 1], color="y", label="Susceptibles")
-plt.plot(RES[:, 2] + RES[:, 3], color="g", label="Infectious")
-plt.plot(RES[:, 4] + RES[:, 5], color="r", label="Recovereds")
+plt.plot(dat[:, 0] + dat[:, 1], color="y", label="Susceptibles")
+plt.plot(dat[:, 2] + dat[:, 3], color="g", label="Infectious")
+plt.plot(dat[:, 4] + dat[:, 5], color="r", label="Recovereds")
 plt.legend()
 plt.xlabel("time")
 plt.ylabel("proportion")
@@ -176,8 +193,8 @@ plt.show()
 
 # Masks
 plt.figure()
-plt.plot(RES[:, 0] + RES[:, 2] + RES[:, 4], label="Masks")
-plt.plot(RES[:, 1] + RES[:, 3] + RES[:, 5], label="No Masks")
+plt.plot(dat[:, 0] + dat[:, 2] + dat[:, 4], label="Masks")
+plt.plot(dat[:, 1] + dat[:, 3] + dat[:, 5], label="No Masks")
 plt.legend()
 plt.xlabel("time")
 plt.ylabel("proportion")
@@ -187,31 +204,17 @@ plt.show()
 fig, axs = plt.subplots(2, sharex=True, sharey=True)
 fig.suptitle('Masked compartments')
 axs[0].set_title("Masks")
-axs[0].plot(t_range, RES[:, 0], color="y", label="Susceptibles")
-axs[0].plot(t_range, RES[:, 2], color="g", label="Infectious")
-axs[0].plot(t_range, RES[:, 4], color="r", label="Recovereds")
+axs[0].plot(t_range, dat[:, 0], color="y", label="Susceptibles")
+axs[0].plot(t_range, dat[:, 2], color="g", label="Infectious")
+axs[0].plot(t_range, dat[:, 4], color="r", label="Recovereds")
 axs[0].legend()
 
 axs[1].set_title("No Masks")
-axs[1].plot(t_range, RES[:, 1], color="y", label="Susceptibles")
-axs[1].plot(t_range, RES[:, 3], color="g", label="Infectious")
-axs[1].plot(t_range, RES[:, 5], color="r", label="Recovereds")
+axs[1].plot(t_range, dat[:, 1], color="y", label="Susceptibles")
+axs[1].plot(t_range, dat[:, 3], color="g", label="Infectious")
+axs[1].plot(t_range, dat[:, 5], color="r", label="Recovereds")
 axs[1].legend()
 fig.tight_layout()
 plt.show()
 
-
-# Ploting
-# pl.subplot(211)
-# pl.plot(RES[:, 0], '-g', label='Susceptibles')
-# pl.plot(RES[:, 2], '-k', label='Recovereds')
-# pl.title('Simple SIR')
-# pl.xlabel('Time')
-# pl.ylabel('Susceptibles and Recovereds')
-# pl.subplot(212)
-# pl.plot(RES[:, 1], '-r', label='Infectious')
-# pl.legend(loc=0)
-# pl.xlabel('Time')
-# pl.ylabel('Infectious')
-# pl.show()
 # %%
