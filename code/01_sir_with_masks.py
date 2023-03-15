@@ -106,7 +106,7 @@ def diff_eqs(INP, t):
 # %%
 
 
-def ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, INP):
+def ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, INP):  # todo: why not change `INP` to `V`?
 
     V = INP
 
@@ -117,10 +117,10 @@ def ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, INP):
     alpha = rate_to_no_mask(V[1], V[2], V[3], V[5])
 
     F = np.array(
-        [[beta * (1-c) * (1 - p), beta * (1-c)], [beta * (1 - p), beta]])
+        [[beta * (1-c) * (1 - p) * V[0], beta * (1-c) * V[0]], [beta * (1 - p) * V[1], beta * V[1]]])
 
-    V = np.array([[-a2 * alpha + gamma - (w1 + w2) * In, (a1 - a2) * Im - omega * w2],
-                  [(w1 + w2) * In + a2 * alpha, w2 * omega + gamma - (a1 - a2) * Im]])
+    V = np.array([[alpha + gamma - a2 * Im - (w1 + w2) * In, (a1 - a2) * Im - omega - w2 * In],
+                  [(w1 + w2) * In - alpha + a2 * Im, omega + gamma - (a1 - a2) * Im - w2 * In]])
     Vinv = np.linalg.inv(V)
 
     prod = np.matmul(F, Vinv)
@@ -130,7 +130,7 @@ def ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, INP):
     return np.absolute(ANS).max()
 
 
-def cal_r0(t):
+def cal_rt(t):
     ANS = ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, RES[t, :])
     return ANS
 
@@ -140,12 +140,13 @@ def cal_r0(t):
 RES = spi.odeint(diff_eqs, INPUT, t_range)  # fixme: the documentation says to use spi.solve_ivp for new code, noting opposite orders of expected function inputs etc
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html
 
-R0 = list(map(cal_r0, range(len(t_range))))
+Rt = list(map(cal_rt, range(len(t_range))))
 
 plt.figure()
-plt.plot(t_range, R0)
+plt.plot(t_range, Rt)
+plt.plot([t_range[0], t_range[-1]], [1, 1], ':k')
 plt.xlabel("time")
-plt.ylabel("R0")
+plt.ylabel("R_t")
 plt.show()
 
 # %% plotting
