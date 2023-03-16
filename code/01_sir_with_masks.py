@@ -18,31 +18,53 @@ import scipy.integrate as spi
 import numpy as np
 # import pylab as pl
 import matplotlib.pyplot as plt
+import json
+import os
 
 
+working_path = "/Users/rya200/Library/CloudStorage/OneDrive-CSIRO/Documents/03_projects/reid-mask_sir_toymodel"
+os.chdir(working_path)
 # %% Parameters and inital conditions
 
+filename = "data/parameter_ranges.json"
+
+# Load in the data from a json file
+with open(filename) as json_file:
+    pars = json.load(json_file)
+# Replace all the infromation in the json with the expected value
+for key, value in pars.items():
+    pars[key] = value["exp"]
+
+# Enter custom params
+cust_params = dict()
+# cust_params["transmission"] = 0.5
+# cust_params["infectious_period"] = 5
+# cust_params["immune_period"] = 0
+# cust_params["susc_mask_efficacy"] = 0.3
+# cust_params["inf_mask_efficacy"] = 0.5
+# cust_params["nomask_social"] = 1
+# cust_params["nomask_fear"] = 0.5
+# cust_params["mask_social"] = 1
+# cust_params["mask_fear"] = 10
+
+pars.update(cust_params)
+
 # Model parameters  # todo: I highly recommend starting a parameter file (csv, json, whatever data format) ASAP, and noting symbol, description, expected value, min, max values, and any sources. You can then read them into python and generate tex tables from single source to change.
-beta = 0.5  # Infectiousness of disease
-c = 0.5  # Effectiveness of susc. wearing mask
-p = 0.7  # Effectiveness of infected wearing mask
-gamma = 0.2  # Recovery rate
-nu = 0  # Immunity
+beta = pars.get("transmission")  # Infectiousness of disease
+c = pars.get("susc_mask_efficacy")  # Effectiveness of susc. wearing mask
+p = pars.get("inf_mask_efficacy")  # Effectiveness of infected wearing mask
+gamma = pars.get("infectious_period")  # Recovery rate
+nu = pars.get("immune_period")   # Immunity
 
-a1 = 1  # Social influence on mask wearers
-a2 = 0.5  # Fear of disease for mask wearers
-w1 = a1  # Social influence on non-mask wearers
-w2 = a2  # Fear of disease for non-mask wearers
+if gamma != 0:
+    gamma = 1/gamma
+if nu != 0:
+    nu = 1/nu
 
-# a1 = 0.5  # Social influence on mask wearers
-# a2 = 0.5  # Fear of disease for mask wearers
-# w1 = 1  # Social influence on non-mask wearers
-# w2 = 0.5  # Fear of disease for non-mask wearers
-
-# a1 = 0  # Social influence on mask wearers
-# a2 = 0  # Fear of disease for mask wearers
-# w1 = 0  # Social influence on non-mask wearers
-# w2 = 0  # Fear of disease for non-mask wearers
+a1 = pars.get("nomask_social")  # Social influence on mask wearers
+a2 = pars.get("nomask_fear")  # Fear of disease for mask wearers
+w1 = pars.get("mask_social")   # Social influence on non-mask wearers
+w2 = pars.get("mask_fear")   # Fear of disease for non-mask wearers
 
 
 # Time steps/number of days
@@ -177,13 +199,13 @@ def cal_rt(t):
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html
 
 
-RES = spi.solve_ivp(diff_eqs, [t_start, t_end],  INPUT)
+RES = spi.solve_ivp(diff_eqs, [t_start, t_end],  INPUT, t_eval=t_range)
 dat = RES.y.T
-t_range = RES.t
+# t_range = RES.t
 
 Rt = list(map(cal_rt, range(len(t_range))))
 
-switch_time = next(i for i, V in enumerate(Rt) if V <= 1) - 1
+switch_time = next(i for i, V in enumerate(Rt) if V <= 1)
 tt = t_range[switch_time]
 
 plt.figure()
@@ -214,7 +236,7 @@ plt.figure()
 plt.plot(dat[:, 0] + dat[:, 1], color="y", label="Susceptibles")
 plt.plot(dat[:, 2] + dat[:, 3], color="g", label="Infectious")
 plt.plot(dat[:, 4] + dat[:, 5], color="r", label="Recovereds")
-plt.plot([tt, tt], [0, 2], ':k')
+plt.plot([tt, tt], [0, 1], ':k')
 plt.legend()
 plt.xlabel("time")
 plt.ylabel("proportion")
@@ -245,5 +267,3 @@ axs[1].plot(t_range, dat[:, 5], color="r", label="Recovereds")
 axs[1].legend()
 fig.tight_layout()
 plt.show()
-
-# %%
