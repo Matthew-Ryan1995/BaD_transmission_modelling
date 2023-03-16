@@ -115,6 +115,32 @@ def diff_eqs(t, INP):
 
 # todo: why not change `INP` to `V`?
 # Changed to Y to distinguish from V matrix
+# def ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, Y):
+
+#     Im = Y[2]
+#     In = Y[3]
+
+#     tot_mask_prop = Y[0] + Y[2] + Y[4]
+#     tot_inf = Y[2] + Y[3]
+
+#     omega = rate_to_mask(tot_mask_prop=tot_mask_prop, tot_inf=tot_inf)
+#     alpha = rate_to_no_mask(tot_no_mask_prop=1 -
+#                             tot_mask_prop, tot_uninf=1 - tot_inf)
+
+#     F = np.array(
+#         [[beta * (1-c) * (1 - p) * Y[0], beta * (1-c) * Y[0]], [beta * (1 - p) * Y[1], beta * Y[1]]])
+
+#     V = np.array([[alpha + gamma - a2 * Im - (w1 + w2) * In, (a1 - a2) * Im - omega - w2 * In],
+#                   [(w1 + w2) * In - alpha + a2 * Im, omega + gamma - (a1 - a2) * Im + w2 * In]])
+#     Vinv = np.linalg.inv(V)
+
+#     prod = np.matmul(F, Vinv)
+
+#     ANS = np.linalg.eigvals(prod)
+
+#     return np.absolute(ANS).max()
+
+
 def ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, Y):
 
     Im = Y[2]
@@ -127,24 +153,21 @@ def ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, Y):
     alpha = rate_to_no_mask(tot_no_mask_prop=1 -
                             tot_mask_prop, tot_uninf=1 - tot_inf)
 
-    F = np.array(
-        [[beta * (1-c) * (1 - p) * Y[0], beta * (1-c) * Y[0]], [beta * (1 - p) * Y[1], beta * Y[1]]])
+    x = alpha - a2 * Im - (w1 + w2) * In
+    y = -(a1 - a2) * Im + omega + w2 * In
 
-    V = np.array([[alpha + gamma - a2 * Im - (w1 + w2) * In, (a1 - a2) * Im - omega - w2 * In],
-                  [(w1 + w2) * In - alpha + a2 * Im, omega + gamma - (a1 - a2) * Im - w2 * In]])
-    Vinv = np.linalg.inv(V)
+    a = (1 - p) * (gamma + y) + x
+    b = (1 - p) * y + gamma + x
 
-    prod = np.matmul(F, Vinv)
+    Gamma = beta/(gamma * (gamma + x + y))
 
-    ANS = np.linalg.eigvals(prod)
-
-    return np.absolute(ANS).max()
+    return Gamma * ((1-c) * Y[0] * a + Y[1] * b)
 
 
 def cal_rt(t):
-    ANS = ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, dat[t, :])
+    ANS = ngm_reproduction_number(
+        beta, c, p, a1, a2, w1, w2, gamma, dat[t, :])
     return ANS
-
 
 # %% Run ODE-int
 
@@ -153,15 +176,20 @@ def cal_rt(t):
 # RES = spi.odeint(diff_eqs, INPUT, t_range)
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.odeint.html
 
+
 RES = spi.solve_ivp(diff_eqs, [t_start, t_end],  INPUT)
 dat = RES.y.T
 t_range = RES.t
 
 Rt = list(map(cal_rt, range(len(t_range))))
 
+switch_time = next(i for i, V in enumerate(Rt) if V <= 1) - 1
+tt = t_range[switch_time]
+
 plt.figure()
 plt.plot(t_range, Rt)
 plt.plot([t_range[0], t_range[-1]], [1, 1], ':k')
+plt.plot([tt, tt], [0, 2], ':k')
 plt.xlabel("time")
 plt.ylabel("R_t")
 plt.show()
@@ -186,6 +214,7 @@ plt.figure()
 plt.plot(dat[:, 0] + dat[:, 1], color="y", label="Susceptibles")
 plt.plot(dat[:, 2] + dat[:, 3], color="g", label="Infectious")
 plt.plot(dat[:, 4] + dat[:, 5], color="r", label="Recovereds")
+plt.plot([tt, tt], [0, 2], ':k')
 plt.legend()
 plt.xlabel("time")
 plt.ylabel("proportion")

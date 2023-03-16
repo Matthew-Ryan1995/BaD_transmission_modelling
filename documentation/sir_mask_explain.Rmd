@@ -69,12 +69,12 @@ Further parameters that will pop up
 
 $$
   \begin{aligned}
-    \dot{S}_{N} & =  -\lambda S_{N} + \alpha S_{M} - \omega S_{N}\\
     \dot{S}_{M} & =  -\lambda (1-c) S_{M} - \alpha S_{M} + \omega S_{N}\\
-    \dot{I}_{N} & = \lambda S_{N} + \alpha I_{M} - \omega I_{N} - \gamma I_{N}\\
+    \dot{S}_{N} & =  -\lambda S_{N} + \alpha S_{M} - \omega S_{N}\\
     \dot{I}_{M} & = \lambda (1-c) S_{M} - \alpha I_{M} + \omega I_{N} - \gamma I_{M}\\
-    \dot{R}_N & = \gamma I_{N} + \alpha R_{M} - \omega R_{N} \, \\
-    \dot{R}_M & = \gamma I_{M}  - \alpha R_{M} + \omega R_{N}\, ,
+    \dot{I}_{N} & = \lambda S_{N} + \alpha I_{M} - \omega I_{N} - \gamma I_{N}\\
+    \dot{R}_M & = \gamma I_{M}  - \alpha R_{M} + \omega R_{N}\, \\
+    \dot{R}_N & = \gamma I_{N} + \alpha R_{M} - \omega R_{N} \, ,
   \end{aligned}
 $$
 
@@ -82,12 +82,67 @@ where
 
 $$
   \begin{aligned}
-    \lambda & = \beta \left( I_{N} + (1-p) I_M \right)\\
-    \omega & = \omega_1 (S_M + I_M + R_M) + \omega_2(I_M + I_{N})\\
-    \alpha & = \alpha_1 (S_{N} + I_{N} + R_N) + \alpha_2(1 - (I_M + I_{N}))\, .\\
+    \lambda(t) & = \beta \left( I_{N} + (1-p) I_M \right)\\
+    \omega(t) & = \omega_1 (S_M + I_M + R_M) + \omega_2(I_M + I_{N})\\
+    \alpha(t) & = \alpha_1 (S_{N} + I_{N} + R_N) + \alpha_2(1 - (I_M + I_{N}))\, .\\
   \end{aligned}
 $$
 
+## Next generation matrix
+
+- The disease states are $I_M$ and $I_N$
+- Cannot ignore $S_M$ and $S_N$!
+
+The flow in is
+
+$$
+  \mathscr{F} = 
+    \begin{bmatrix}
+        \beta (1-c)\left( I_{N} + (1-p) I_M \right) S_M\\
+        \beta \left( I_{N} + (1-p) I_M \right) S_N 
+    \end{bmatrix}
+$$
+
+and flow out is
+
+$$
+  \mathscr{V} = 
+    \begin{bmatrix}
+        - \omega I_{N} + (\alpha + \gamma) I_{M} \\
+        (\omega + \gamma) I_N -  \alpha I_{M}
+    \end{bmatrix}\, .
+$$
+
+The differential of these with respect to the disease states (remembering that $\alpha$ and $\omega$ depend on $I_N$ and $I_M$) are:
+
+$$
+\begin{aligned}
+  F &= 
+    \begin{bmatrix}
+      \beta(1-c)(1-p)S_M & \beta(1-c)S_M\\
+      \beta(1-p)S_N & \beta S_N
+    \end{bmatrix}\, , \\[1em]
+  V &= 
+    \begin{bmatrix}
+      \gamma + \alpha - \alpha_2 I_M - (\omega_1 + \omega_2) I_N & (\alpha_1 - \alpha_2) I_M - \omega - \omega_2 I_N \\
+      (\omega_1 + \omega_2) I_N - \alpha + \alpha_2 I_M & \gamma - (\alpha_1 - \alpha_2) I_M + \omega + \omega_2 I_N
+    \end{bmatrix} \, .
+\end{aligned}
+$$
+
+Then $R(t) = \sigma(t)$ where $\sigma(t)$ is the largest (absolute) eigenvalue of $(FV^{-1})(t)$.  Defining
+
+* $x = \alpha - \alpha_2 I_M - (\omega_1 + \omega_2) I_N$, (rate of change in $I_M$ due to mask transitions)
+* $y = \omega - (\alpha_1 - \alpha_2) I_M + \omega_2 I_N$, (rate of change in $I_N$ due to mask transitions)
+* $a = (1 - p)(\gamma + y) + x$, (total rate of change in $I_N$ accounting for reduced infections due to mask ($1-p$)?)
+* $b = (1 - p)y + \gamma + x$, and (total rate of change in $I_M$ accounting for reduced infections due to mask ($1-p$)?)
+* $\Gamma = \frac{\beta}{\gamma(\gamma + x + y)}$ ($R_0$ with no mask effects ($p = c = 0$))
+
+we can succinctly write
+
+$$
+  \sigma(t) = \Gamma\left( (1-c) S_M a + S_N b \right)\, .
+$$
 
 
 
