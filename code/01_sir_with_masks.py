@@ -39,7 +39,7 @@ for key, value in pars.items():
 cust_params = dict()
 # cust_params["transmission"] = 0.5
 # cust_params["infectious_period"] = 5
-# cust_params["immune_period"] = 0
+# cust_params["immune_period"] = 365
 # cust_params["susc_mask_efficacy"] = 0.3
 # cust_params["inf_mask_efficacy"] = 0.5
 # cust_params["nomask_social"] = 1
@@ -55,6 +55,7 @@ c = pars.get("susc_mask_efficacy")  # Effectiveness of susc. wearing mask
 p = pars.get("inf_mask_efficacy")  # Effectiveness of infected wearing mask
 gamma = pars.get("infectious_period")  # Recovery rate
 nu = pars.get("immune_period")   # Immunity
+mu = 1/pars.get("av_lifespan")   # av life ~70 years
 
 if gamma != 0:
     gamma = 1/gamma
@@ -69,7 +70,7 @@ w2 = pars.get("mask_fear")   # Fear of disease for non-mask wearers
 
 # Time steps/number of days
 TS = 1.0
-ND = 100.0
+ND = 50.0
 
 t_start = 0.0
 t_end = ND
@@ -106,6 +107,7 @@ def rate_to_no_mask(tot_no_mask_prop, tot_uninf):
     return a1 * (tot_no_mask_prop) + a2 * (tot_uninf)
 
 
+# Added demography, simple birth/death
 def diff_eqs(t, INP):
     '''The main set of equations.
     :params INP: previous population values (list of 6 values)
@@ -123,13 +125,17 @@ def diff_eqs(t, INP):
                             tot_mask_prop, tot_uninf=1 - tot_inf)
 
     Y[0] = -lam * (1 - c) * V[0] - alpha * V[0] + \
-        omega * V[1] + nu * V[4]  # S_m
-    Y[1] = -lam * V[1] + alpha * V[0] - omega * V[1] + nu * V[5]  # S_n
+        omega * V[1] + nu * V[4] + mu - mu*V[0]  # S_m
+    Y[1] = -lam * V[1] + alpha * V[0] - \
+        omega * V[1] + nu * V[5] - mu*V[1]  # S_n
     Y[2] = lam * (1 - c) * V[0] - alpha * V[2] + \
-        omega * V[3] - gamma * V[2]  # I_m
-    Y[3] = lam * V[1] + alpha * V[2] - omega * V[3] - gamma * V[3]  # I_n
-    Y[4] = gamma * (V[2]) - nu * V[4] - alpha * V[4] + omega * V[5]  # R_m
-    Y[5] = gamma * (V[3]) - nu * V[5] + alpha * V[4] - omega * V[5]  # R_n
+        omega * V[3] - gamma * V[2] - mu*V[2]  # I_m
+    Y[3] = lam * V[1] + alpha * V[2] - omega * \
+        V[3] - gamma * V[3] - mu*V[3]  # I_n
+    Y[4] = gamma * (V[2]) - nu * V[4] - alpha * V[4] + \
+        omega * V[5] - mu*V[4]  # R_m
+    Y[5] = gamma * (V[3]) - nu * V[5] + alpha * V[4] - \
+        omega * V[5] - mu*V[5]  # R_n
     return Y   # For odeint
 
 # %%
@@ -178,10 +184,10 @@ def ngm_reproduction_number(beta, c, p, a1, a2, w1, w2, gamma, Y):
     x = alpha - a2 * Im - (w1 + w2) * In
     y = -(a1 - a2) * Im + omega + w2 * In
 
-    a = (1 - p) * (gamma + y) + x
-    b = (1 - p) * y + gamma + x
+    a = (1 - p) * (gamma + mu + y) + x
+    b = (1 - p) * y + gamma + mu + x
 
-    Gamma = beta/(gamma * (gamma + x + y))
+    Gamma = beta/((gamma + mu) * ((gamma + mu) + x + y))
 
     return Gamma * ((1-c) * Y[0] * a + Y[1] * b)
 
