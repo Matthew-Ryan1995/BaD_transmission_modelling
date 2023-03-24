@@ -39,7 +39,7 @@ for key, value in pars.items():
 cust_params = dict()
 # cust_params["transmission"] = 0.5
 # cust_params["infectious_period"] = 5
-# cust_params["immune_period"] = 365
+# cust_params["immune_period"] = 15
 # cust_params["susc_mask_efficacy"] = 0.3
 # cust_params["inf_mask_efficacy"] = 0.5
 # cust_params["nomask_social"] = 1
@@ -67,6 +67,12 @@ a2 = pars.get("nomask_fear")  # Fear of disease for mask wearers
 w1 = pars.get("mask_social")   # Social influence on non-mask wearers
 w2 = pars.get("mask_fear")   # Fear of disease for non-mask wearers
 
+# Experimental
+
+prop_with_masks = 0.0  # Proportion of mask wearers that will always wear a mask
+# Proportion of non-mask wearers that will always wear no mask
+prop_with_no_masks = 0.
+
 
 # Time steps/number of days
 TS = 1.0
@@ -78,7 +84,7 @@ t_inc = TS
 t_range = np.arange(t_start, t_end+t_inc, t_inc)
 
 # Inital parameters
-S0_m = 0.
+S0_m = 0
 I0_m = 0
 I0_n = 1e-2  # 10% of the population starting infectious is quite high
 R0_n = 0
@@ -123,6 +129,9 @@ def diff_eqs(t, INP):
     omega = rate_to_mask(tot_mask_prop=tot_mask_prop, tot_inf=tot_inf)
     alpha = rate_to_no_mask(tot_no_mask_prop=1 -
                             tot_mask_prop, tot_uninf=1 - tot_inf)
+
+    omega = omega * (1 - prop_with_masks)
+    alpha = alpha * (1 - prop_with_no_masks)
 
     Y[0] = -lam * (1 - c) * V[0] - alpha * V[0] + \
         omega * V[1] + nu * V[4] + mu - mu*V[0]  # S_m
