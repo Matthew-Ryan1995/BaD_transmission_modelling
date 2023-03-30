@@ -11,13 +11,6 @@ knitr::opts_chunk$set(echo = F)
 pacman::p_load(tidyverse)
 ```
 
-## Questions
-
-- How does mask wearing effect the spread of a simple epidemic?
-- What are the benefits of different types of masks?
-- Can behavioural dynamics be incorporated to model mask wearing?
-- What are the effects of behavioural dynamics on the epidemic process?
-
 ## Basic idea
 
 - Simple SIR model disease progression with strata for mask-wearing status, resulting in compartments for S-masked, S-no mask, I-masked, I-no mask, R-masked, R-no mask.
@@ -144,23 +137,18 @@ Then $R(t) = \sigma(t)$ where $\sigma(t)$ is the largest (absolute) eigenvalue o
 * $a = (1 - p)(\gamma + y) + x$, (total rate of change in $I_N$ accounting for reduced infections due to mask ($1-p$)?)
 * $b = (1 - p)y + \gamma + x$, and (total rate of change in $I_M$ accounting for reduced infections due to mask ($1-p$)?)
 * $\Gamma = \frac{\beta}{\gamma(\gamma + x + y)}$ ($R_0$ with no mask effects ($p = c = 0$))
+* Can look at $I = I_N + I_M$ and $M = I_M + S_M + R_M$ and maybe work out some equilibriums?  First (wrong) solution thinks that
+
+$$
+  S_N = \frac{\gamma ( 1 + \frac{\omega}{\alpha})}{\beta(1 + (1-p)\frac{\omega}{\alpha})(1 + (1-c)\frac{\omega}{\alpha})}
+$$
+
+Problem is that $\omega$ and $\alpha$ depend on the disease states
 
 we can succinctly write
 
 $$
   \sigma(t) = \Gamma\left( (1-c) S_M a + S_N b \right)\, .
 $$
-## Extension possibilities
 
-- Differential game theory to account for mask wearing?  Accounts for individual cost of a behaviour and averages out over the community.  Assumes reasonable behaviour.  See Reluga2010, Dashtbali2021.
-- Include death by disease, this will increase fear of disease
-- Include different structures of social influence and fear of disease
-- Include a "burnout" period for mask wearing (similar to Kastalskiy2021).  Includes an SIR model for behavioural burnout of an intervention
-- Different models for spread of masks
-- Density dependence for social influence?
-- Include constant prop of mask and no mask. How?
-- Threshold on social influence?
-- Improved mask to no mask by modelling the health belief model? on a population level?
-- Also consider the theory of planned behaviour
-
-
+* Change $\alpha$ and $\omega$ to incorporate theory of planned behaviour?  Use logistic regression to get probability of compliance per capita, convert to rate (odds ratio?) and use this instead of alpha and omega.  In this setting, probably very much need different probabilities for each class.
