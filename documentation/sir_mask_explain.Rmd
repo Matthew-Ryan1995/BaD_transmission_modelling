@@ -18,6 +18,8 @@ pacman::p_load(tidyverse)
 - Assume transitions between masked-not masked based on social influence and fear of disease (noting FD type "infection" structure for fear of disease, when could actually be more about absolute number/density dependence -- interesting question to explore how structure affects dynamics)
 - Work in proportions such that S + I + R = 1
 - no demography
+- Han2021 - Effects of masks on the transmission of infectious diseases.  Similar approach
+- Del Valle 2012 - Modeling the Impact of Behavior Changes on the Spread of Pandemic Influenza: They do essentially the same model as I do, however they suggest a simpler transition for behaviour based off of a simple step function.  They also investigate a large scale agent-based model (approx 20mil agents I think).
 
 ## State diagram
 
@@ -152,3 +154,162 @@ $$
 $$
 
 * Change $\alpha$ and $\omega$ to incorporate theory of planned behaviour?  Use logistic regression to get probability of compliance per capita, convert to rate (odds ratio?) and use this instead of alpha and omega.  In this setting, probably very much need different probabilities for each class.
+
+# Improving the behaviour transitions
+
+These are thoughts on how to improve the transition rates $\alpha$ and $\omega$ to be (in some sense) more realistic of human behaviour.  I found the paper "Incorporating human behaviour in simulation models of screening for breast cancer" (Brailsford et al., 2012) that builds a DES incorporating human behaviour models.  They argue that the theory of planned behaviour is the better model to implement because it nicely lends itself to mathematical modelling (through a logistic regression).  The also discuss the health belief model (preferred by Emily), but argue it is not clear how to model it because the relationships between the bubbles is not obvious.
+
+My thought is to build a global behaviour logistic regression to replace $\alpha$ and $\omega$ with the probability of wearing as mask.  This will obviously be very coarse and run under many assumptions.  I am also not sure how to integrate the probability as a reasonable rate in the DE model.  Thoughts for each model are discussed below.
+
+## The theory of planned behaviour
+
+The theory of planned behaviour (Figure 1) is a cognitive-social behavioural model that predicts *intention* to perform a behaviour off of three main inputs:
+
+1. **attitude towards behaviour**: This measures an individuals personal beliefs around how beneficial the behaviour is.  Theorised to be constructed of how beneficial the supposed outcomes of the behaviour is and how likely those outcomes are to occur.
+2. **Subjective norms**:  This is the social influence, basically along the lines of "what do people I respect think of this behaviour?"
+3. **Perceived behavioural control**:  This is the idea of "How well can I do this?  How much say to I have in this matter?"  This capture the "me" aspect of behaviour.
+
+We can model the theory of planned behaviour in the following way.
+Let $\pi_c$ be the probability that a randomly chosen individual in compartment $c \in \{S, I, R\}$ intends to wear a mask.  Let $X_1, X_2$ and $X_3$ denote scores reflecting their attitude towards the behaviour, subjective norms, and perceived behavioural control.  We model
+
+\[
+  \log\left( \frac{\pi_c}{1-\pi_c} \right) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3\, .
+\]
+
+Then 
+
+* $\beta_0$ measures the natural bias of the full population towards wearing a mask, i.e. if $\beta_0 < 0$ then people are more inclined to **not** wear masks
+* $\beta_1$ measures the influence of a persons attitude towards a behaviour on them intending to do the behaviour
+* $\beta_2$ measures the influence of subjective norms on performing the behaviour
+* $\beta_3$ measures the influence of an individuals perceived control of the behaviour on their intention to perform it
+
+Two issues arise in this model.  First, it predicts *intention* to perform the behaviour, which is approx $20\%$ predictive of actually performing the behaviour.  Second, this model does not account for past behaviour, as strong indicator of current behaviour.  Possible work arounds for this:
+
+1. Build the uncertainty between intention and performance into the rate derived from $\pi_c$.
+2. Expand the index set of $c$ to include the masked/non-masked components.
+
+A final deficit of this model is that it does not include risk, which is going to be an important measure to account for in disease modelling.
+
+### My thoughts to applying this to my model
+
+I have tossed up some ideas of generalising my fear of disease and social influence into the theory of planned behaviour.  Based on the nature of the theory, the probability $\pi_c$ will be different depending on your compartment because what you deem important will change depending on your condition.  In the following, I am making the following assumptions (at least):
+
+* Everyone is altruistic and rational
+* Everyone has perfect knowledge of mask efficacy and disease prevalence
+* Everyone knows the condition of the pope they mix with in a day
+* At each time, individuals will make an independent decision on whether to wear a mask or not, i.e. the model is memoryless in knowledge of mask wearing.  Put another way, wearing a mask today has no effect on wearing a mask tomorrow.
+* Everyone knows their own disease state
+
+The measures I am currently considering are represented by survey-like questions below for each state.  Where possible, I have suggested the model parameters that will input into this.
+
+*Behavioural beliefs*
+
+* **S** - wearing a mask will prevent me from catching the disease.  This is captured by the reduction in chance of catching the disease ($c$).
+* **I** - wearing a mask will prevent me spreading the disease.  This is captured by the reduction in chance of spreading the disease ($p$)
+* **S/I/R** - Wearing a mask will help convince others to do the same thing.
+
+*Normative beliefs*
+
+* **S/I/R** - Most people around me are wearing masks.  I suggest this be captured by the log odds of encountering someone wearing a mask ($\log(M/N)$).
+
+*Perceived Control*
+
+* **S/I/R** - I expect to have access to a mask (assumed constant)
+* **S** - I expect to encounter people with the disease.  I am associating this to disease prevalence ($I$)
+* **I** - I expect to encounter people without the disease.  I am associating this to the amount of people not with the disease ($1 - I$).
+
+
+\begin{center}
+\begin{figure}
+\begin{tikzpicture}[node distance=2cm and 1cm,>=stealth',auto, every place/.style={draw}]
+
+    \node[box] (att) [text width=3cm, align=center]{Attitude towards behaviour};
+    \node[box] (subnorm) [below=of att, text width=3cm, align=center] {Subjective norms};
+    \node[box] (pbc) [below=of subnorm, text width=3cm, align=center] {Perceived behavioural control};
+    \node[box] (bintent) [right=of subnorm, align=center] {Behavioural intentions};
+    \node[box, scale = 2] (behav) [right=of bintent, align=center] {Behaviour};
+    
+        
+    \node[box] (belief_out) [left=of att, text width=4cm, align=center] {Belief about outcomes $\times$ Evaluation of outcomes};
+    \node[box] (sub_input) [left=of subnorm, text width=4cm, align=center] {Normative beliefs $\times$ Motivation to comply};
+    \node[box] (pbc_input) [left=of pbc, text width=4cm, align=center] {Perceived likelihood of occurance $\times$ Perceived facilitating or inhibiting power};
+    
+    
+    
+    
+    \path[->] (att) edge node {} (bintent);
+    \path[->] (subnorm) edge node {} (bintent);
+    \path[->] (pbc) edge node {} (bintent);
+    \path[->, dashed] (pbc) edge [bend right] node {} (behav);
+    \path[->] (bintent) edge node {} (behav);
+    
+    \path[->] (belief_out) edge node {} (att);
+    \path[->] (sub_input) edge node {} (subnorm);
+    \path[->] (pbc_input) edge node {} (pbc);
+    
+
+\end{tikzpicture}
+\caption{The theory of planned behaviour}
+\end{figure}
+\end{center}
+
+## The health belief model
+
+- Durham2012 - Agent based model using HBM, masks and infectious diseases
+
+The health belief model has gone through some renditions (Figure 2), but suggests that actions taken for health benefit are influenced by the following factors:
+
+1. **Health motivation**: TBD
+2. **Perception of illness threat**: This captures both perceived susceptibility to the illness and perceived severity of the illness.
+3. **Evaluation of behaviours to counteract threat**: This captures the perceived benefits of the behaviour as well as the perceived barriers to performing the behaviour
+4. **Cues to action**: TBD
+
+Durham and Casman includes the HBM in an gent-based model for disease spread to investigate the impact of behaviour on diseases spread, but decouples this from the epidemiology.  Durham and Casman focuses only on the second two inputs, investigating the sub-inputs to those drivers.  They suggest a fairly simply approach using a logistic regression in the following way.  Let $\pi_i$ be the probability that individual $i$ chooses to take up the behaviour.  Let $X_1, X_2, X_3$ and $X_4$ be an individuals binary indicators of low or high risk for susceptibility, severity, benefits, and barriers respectively.  They model
+\[
+  \log\left( \frac{\pi_i}{1 - \pi_i} \right) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 + \beta_4 X_4\, ,
+\]
+where
+
+* $\beta_0$ is the baseline attitude towards the behaviour.
+* $\beta_i$ is the effect of having a high risk value for measure $i$.
+
+They actually present model with respect to odds ratios, but I find this a lot more opaque than the standard logistic regression format I am used to.
+
+In their work, they suggest a cut off such that if $\hat\pi_i > 0.5$ at a given time for an agent, they will adopt the behaviour.  They also argue that $\beta_3 = 0$, that is, perceived benefit has no effect in their model, based off little correlation between the benefit and act of wearing a mask.  Further, they suggest models for $X_1, X_2$ and $X_4$ roughly based around the following:
+
+* $X_1$ captures disease prevalence.  Measures the time dependant knowledge of disease today and in the past, with waning weight towards past cases.  Once this measure exceeds a threshold, they consider $X_1$ to be high risk.
+* $X_2$ captures the fear of severity of the disease.  They suggest two possible models for this.  The first provides a ratio of deaths to infections as a measure of how sever it is.  The second measures the media coverage of the disease.  In both situations, once this fear exceeds a threshold, the $X_2$ variable is considered high.
+* $X_4$ captures the social influence of the behaviour.  They argue that a barrier to mask wearing can be social stigma for wearing a mask when no one else is wearing one.  Thus, they give a weighted sum to observing those around you wearing a mask as an indicator for if you should wear one.  Again, they give this a threshold for it to tick over.  Due to the contraditctory nature of a barrier, the barrier is considered low when many people are wearing a mask and high otherwise.
+
+\begin{center}
+\begin{figure}
+\begin{tikzpicture}[node distance=2cm and 1cm,>=stealth',auto, every place/.style={draw}]
+
+    \node[box] (healthmotivation) [text width=3cm, align=center] at (5.5, 6) {Health motivation};
+    \node[box] (illnessthreat) [text width=3cm, align=center] at (3, 3) {Perception of illness threat};
+    \node[box] (behaviours) [text width=3cm, align=center] at (3, -3) {Evaluation of behaviours to counteract threat};
+    \node[box] (action) [text width=3cm, align=center] at (5.5, -6) {Cues to action};
+    \node[box, scale = 2] (heatlhbehaviour) [text width=3cm, align=center] at (8, 0) {Health behaviour};
+    
+    
+        
+    \node[box] (suscep_ill) [text width=3cm, align=center] at (-2, 4.5) {Perceived susceptibility to illness};
+    \node[box] (sever_ill) [text width=3cm, align=center] at (-2, 1.5) {Perceived severity of illness};
+    \node[box] (benefit_in) [text width=3cm, align=center] at (-2, -1.5) {Perceived benefits of behaviour};
+    \node[box] (barrier_in) [text width=3cm, align=center] at (-2, -4.5) {Perceived barriers to behaviour};
+    
+    \path[->] (healthmotivation) edge node {} (heatlhbehaviour);
+    \path[->] (illnessthreat) edge node {} (heatlhbehaviour);
+    \path[->] (behaviours) edge node {} (heatlhbehaviour);
+    \path[->] (action) edge node {} (heatlhbehaviour);
+    
+    \path[->] (suscep_ill) edge node {} (illnessthreat);
+    \path[->] (sever_ill) edge node {} (illnessthreat);
+    \path[->] (benefit_in) edge node {} (behaviours);
+    \path[->] (barrier_in) edge node {} (behaviours);
+    
+
+\end{tikzpicture}
+\caption{The health belief model}
+\end{figure}
+\end{center}
