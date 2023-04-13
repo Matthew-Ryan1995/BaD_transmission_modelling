@@ -16,10 +16,22 @@ pacman::p_load(tidyverse)
 - Simple SIR model disease progression with strata for mask-wearing status, resulting in compartments for S-masked, S-no mask, I-masked, I-no mask, R-masked, R-no mask.
 - Supposing wearing a mask reduces both susceptibility and infectiousness (depending on who is wearing it)
 - Assume transitions between masked-not masked based on social influence and fear of disease (noting FD type "infection" structure for fear of disease, when could actually be more about absolute number/density dependence -- interesting question to explore how structure affects dynamics)
-- Work in proportions such that S + I + R = 1
+- Work in proportions such that $S + I + R = 1$.  Similarly, $M + N = 1$.
+- I am thinking of this as two distinct (but coupled) models on the same population.
 - no demography
 - Han2021 - Effects of masks on the transmission of infectious diseases.  Similar approach
 - Del Valle 2012 - Modeling the Impact of Behavior Changes on the Spread of Pandemic Influenza: They do essentially the same model as I do, however they suggest a simpler transition for behaviour based off of a simple step function.  They also investigate a large scale agent-based model (approx 20mil agents I think).
+
+## Where to go
+
+- My model acts as an extension of Perra 2013 and De Valle 2012.  Their models are recoverable by changing the $\alpha$ and $\omega$ parameters.
+- Social exhaustion is also something I might consider.
+- customise $\alpha$ and $\omega$ to each SIR class
+- Can compare current "fear + social" model, TPB model, and HBM.  Make for a long, but comparative piece.
+- Incorporate behaviour burn out?
+- Incorporate sub-classes with "always behaving" in certain way
+- include reactance to behaviours, i.e. when it gets too much people blow up and refuse
+- Include burn-out of behaviour, first steps towards a constant exit rate from behaviour.
 
 ## State diagram
 
@@ -200,7 +212,7 @@ I have tossed up some ideas of generalising my fear of disease and social influe
 * At each time, individuals will make an independent decision on whether to wear a mask or not, i.e. the model is memoryless in knowledge of mask wearing.  Put another way, wearing a mask today has no effect on wearing a mask tomorrow.
 * Everyone knows their own disease state
 
-The measures I am currently considering are represented by survey-like questions below for each state.  Where possible, I have suggested the model parameters that will input into this.
+The measures I am currently considering are represented by survey-like questions below for each state.  Where possible, I have suggested the model parameters that will input into this.  (These concepts need to be discussed with Emily to assess suitability)
 
 *Behavioural beliefs*
 
@@ -279,7 +291,11 @@ In their work, they suggest a cut off such that if $\hat\pi_i > 0.5$ at a given 
 
 * $X_1$ captures disease prevalence.  Measures the time dependant knowledge of disease today and in the past, with waning weight towards past cases.  Once this measure exceeds a threshold, they consider $X_1$ to be high risk.
 * $X_2$ captures the fear of severity of the disease.  They suggest two possible models for this.  The first provides a ratio of deaths to infections as a measure of how sever it is.  The second measures the media coverage of the disease.  In both situations, once this fear exceeds a threshold, the $X_2$ variable is considered high.
-* $X_4$ captures the social influence of the behaviour.  They argue that a barrier to mask wearing can be social stigma for wearing a mask when no one else is wearing one.  Thus, they give a weighted sum to observing those around you wearing a mask as an indicator for if you should wear one.  Again, they give this a threshold for it to tick over.  Due to the contraditctory nature of a barrier, the barrier is considered low when many people are wearing a mask and high otherwise.
+* $X_4$ captures the social influence of the behaviour.  They argue that a barrier to mask wearing can be social stigma for wearing a mask when no one else is wearing one.  Thus, they give a weighted sum to observing those around you wearing a mask as an indicator for if you should wear one.  Again, they give this a threshold for it to tick over.  Due to the contradictory nature of a barrier, the barrier is considered low when many people are wearing a mask and high otherwise.
+
+### My thoughts of applying this approach to my model
+
+TBD
 
 \begin{center}
 \begin{figure}
