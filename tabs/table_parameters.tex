@@ -1,0 +1,60 @@
+\afterpage{%
+\clearpage% Flush earlier floats (otherwise order might not be correct)
+\begin{landscape}% Landscape page
+\begin{centering}
+\begin{longtable}{|l|p{3cm}|p{3cm}|l|p{2cm}|p{2cm}|}
+\caption{Table of parameters.} \label{tab:parameters} \\
+\hline Symbol & Description & Value(min,max) & Units & Source(s) & Source location \\
+\endfirsthead
+\multicolumn{6}{c}
+{\tablename\ \thetable\ -- \textit{Continued from previous page}} \\
+\hline
+Symbol & Description & Value(min,max) & Units & Source(s) & Source location(s) \\
+\hline
+\endhead
+\hline \multicolumn{6}{r}{\textit{Continued on next page}} \\
+\endfoot
+\hline
+\endlastfoot
+
+$\beta$ & Transmission rate & 1.0 (0.0, 15.0) & per time & Currently made up \cite{} & (of source) \\
+$1/\gamma$ & Infectious period & 3.1 (0.0, 15.0) & days & Currently made up \cite{} &  \\
+$1/\mu$ & Average lifespan & 25550.0 (21900.0, 29200.0) & days & Currently made up \cite{} &  \\
+$1/\sigmaa$ & Infectious period & 3.1 (0.0, 15.0) & days & Currently made up \cite{} &  \\
+$\ell$ & Birth rate of mosquitoes & 1.0 (0.0, 110.0) & per time & Currently made up \cite{} &  \\
+$a$ & Proportion of adult mosquitoes female & 0.5 (0.0, 1.0) & unitless & Assumed. \cite{} &  \\
+$\mu_E$ & Mortality rate of eggs & 1.0 (0.0, 10.0) & per time & Made up\cite{} &  \\
+$\sigma$ & Maturation (i.e. hatching) rate of eggs & 1.0 (0.0, 10.0) & per time & Made up\cite{} &  \\
+$\mu_A$ & Mortality rate of aquatic stages (larvae and pupae) & 1.0 (0.0, 10.0) & per time & Made up\cite{} &  \\
+$K$ & Carrying capacity of the combined aquatic stages (eggs, larvae, pupae) & 1.0 (0.0, 100000.0) & Number & Made up\cite{} &  \\
+$\gamma$ & Maturation rate of aquatic stage (larvae to adult) & 1.0 (0.0, 10.0) & per time & Made up\cite{} &  \\
+$\mu_M$ & Mortality rate of adult mosquitoes & 1.0 (0.0, 10.0) & per time & made up\cite{} &  \\
+$\ell_{W0}$ & multiplier of egg laying rate when there's less than $\epsilon_{\ell}$ water & 0.5 (0.0, 1.0) & proportion & Assumed & N/A \\
+$\mu_{EW0}$ & Mortality rate of eggs when desiccated (water under threshold $\epsilon_{\mu E}$) & 0.9 (0.0, 9.0) & per time & Made up\cite{} &  \\
+$\sigma_{W0}$ & Egg hatching rate when water under threshold $\epsilon_{\sigma}$ & 0.0 (0.0, 0.0) & per time & Assumed, based on physiological need of aquatic stages &  \\
+$\mu_{AW0}$ & Mortality rate of aquatic stages when water under threshold $\epsilon_{\mu A}$ & 100.0 (0.0, 1000.0) & per time & Made up\cite{} &  \\
+$\gamma_{W0}$ & Aquatic development rate when water under threshold $\epsilon_{\gamma}$ & 0.0 (0.0, 0.0) & per time & Assumed, based on physiological need of aquatic stages &  \\
+$K_\text{max}$ & Maximum carrying capacity -- what the carrying capacity function asymptotes to & 250000.0 (0.0, 1000000.0) & Number & expected value based on Table 3 from \cite{erraguntla_predictive_2021}, but needs correcting for area and mosquito type & For Aedes albopictus mosquitoes in Texas, USA \\
+$K_{s}$ & How quickly the carrying capacity function asymptotes to $K_\text{max}$ & 1.0 (0.0, 5.0) & unitless & Assumption & N/A \\
+$T_{ag}$ & Minimum temperature required for gestation & 10.0 (0.0, 15.0) & Degrees Celcius & expected value based on Table 3 from \cite{erraguntla_predictive_2021}, but needs correcting for area and mosquito type & For Aedes albopictus mosquitoes in Texas, USA \\
+$T_{DD}$ & Temperature development days required for gestation & 77.0 (0.0, 770.0) & Degrees Celcius time & expected value based on Table 3 from \cite{erraguntla_predictive_2021}, but needs correcting for area and mosquito type & For Aedes albopictus mosquitoes in Texas, USA \\
+$\ell_{T0}$ & coefficient of $T^0$ for number eggs produced & 15.837 (-15.837, 158.37) & number & expected value based on Table 3 from \cite{erraguntla_predictive_2021}, but needs correcting for area and mosquito type & For Aedes albopictus mosquitoes in Texas, USA \\
+$\ell_{T1}$ & coefficient of $T^1$ for number eggs produced & 1.289 (-1.289, 12.89) & number & expected value based on Table 3 from \cite{erraguntla_predictive_2021}, but needs correcting for area and mosquito type & For Aedes albopictus mosquitoes in Texas, USA \\
+$\ell_{T2}$ & coefficient of $T^2$ for number eggs produced & 0.0163 (-0.0163, 0.163) & number & expected value based on Table 3 from \cite{erraguntla_predictive_2021}, but needs correcting for area and mosquito type & For Aedes albopictus mosquitoes in Texas, USA \\
+$\sigma_{T0}$ & Multiplier for temperature dependence function for egg hatching rate & 0.507 (0.0, 1.0) & per time & min and max made up. Expected from \cite{erraguntla_predictive_2021} & For Aedes albopictus mosquitoes in Texas, USA. \\
+$T_{Ec}$ & Critical temperature in for egg hatching rate function & 30.85 (0.0, 60.0) & Degrees Celcius & min and max made up. Expected from \cite{erraguntla_predictive_2021} & For Aedes albopictus mosquitoes in Texas, USA \\
+$T_{E0}$ & Denominator temperature in for egg hatching function & 12.82 (0.0, 60.0) & Degrees Celcius & min and max made up. Expected from \cite{erraguntla_predictive_2021} & For Aedes albopictus mosquitoes in Texas, USA \\
+$\gamma_{T0}$ & Multiplier for temperature dependence function for aquatic development rate & 0.3 (0.0, 1.0) & per time & min and max made up. Expected sort of halfway between larval and pupal from \cite{erraguntla_predictive_2021}, but needs to be fixed & For Aedes albopictus mosquitoes in Texas, USA. \\
+$T_{Ac}$ & Critical temperature in aquatic development function & 32.0 (0.0, 60.0) & Degrees Celcius & min and max made up. Expected sort of halfway between larval and pupal from \cite{erraguntla_predictive_2021}, but needs to be fixed & For Aedes albopictus mosquitoes in Texas, USA \\
+$T_{A0}$ & Denominator temperature in aquatic development rate function & 12.82 (0.0, 60.0) & Degrees Celcius & min and max made up. Expected sort of halfway between larval and pupal from \cite{erraguntla_predictive_2021}, but needs to be fixed & For Aedes albopictus mosquitoes in Texas, USA \\
+$\mu_{ET0}$ & Constant in temperature dependent mortality rate of eggs & 0.1 (0.0, 1.0) & per time & Sort of extrapolated from larval and pupal mortality rate functions from \cite{erraguntla_predictive_2021}, but needs further consideration & For Aedes albopictus mosquitoes in Texas, USA \\
+$\mu_{AT0}$ & Constant in temperature dependent mortality rate of aquatic stages & 100.0 (0.0, 1000.0) & per time & Sort of extrapolated from larval and pupal mortality rate functions from \cite{erraguntla_predictive_2021}, but needs further consideration & For Aedes albopictus mosquitoes in Texas, USA \\
+$\mu_{MT0}$ & coefficient of $T^0$ for adult mortality rate & 22.98 (-22.98, 229.8) & per time & expected value based on \cite{erraguntla_predictive_2021}, but needs correcting for mosquito species & For Aedes albopictus mosquitoes in Texas, USA \\
+$\mu_{MT1}$ & coefficient of $T^1$ for adult mortality rate & 8.147 (-8.147, 81.47) & per time & expected value based on \cite{erraguntla_predictive_2021}, but needs correcting for mosquito species & For Aedes albopictus mosquitoes in Texas, USA \\
+$\mu_{MT0}$ & coefficient of $T^0$ for adult mortality rate & 0.1921 (-0.1921, 1.921) & per time & expected value based on \cite{erraguntla_predictive_2021}, but needs correcting for mosquito species & For Aedes albopictus mosquitoes in Texas, USA \\
+\end{longtable}
+
+\end{centering}
+\end{landscape}
+\clearpage% Flush page
+}

@@ -38,12 +38,19 @@ pacman::p_load(tidyverse)
 \begin{center}
 \begin{tikzpicture}[node distance=2cm and 1cm,>=stealth',auto, every place/.style={draw}]
     
-    \node [place] (Sm) {$S_M$};
-    \node [place] (Sn) [below=of Sm] {$S_{N}$};
-    \node [place] (Im) [node distance=2.5cm,right=of Sm] {$I_M$};
-    \node [place] (In) [below=of Im] {$I_{N}$};
-    \node[place] (Rm) [node distance=2.5cm, right=of Im] {$R_M$};
-    \node[place] (Rn) [below=of Rm] {$R_N$};
+    \node [place] (Sm) [text width=0.75cm, align=center] {$S_M$};
+    \node [place] (Sn) [text width=0.75cm, align=center, below=of Sm] {$S_{N}$};
+    \node [place] (Im) [text width=0.75cm, align=center, node distance=2.5cm,right=of Sm] {$I_M$};
+    \node [place] (In) [text width=0.75cm, align=center, below=of Im] {$I_{N}$};
+    \node[place] (Rm) [text width=0.75cm, align=center, node distance=2.5cm, right=of Im] {$R_M$};
+    \node[place] (Rn) [text width=0.75cm, align=center, below=of Rm] {$R_N$};
+    
+    \draw[green,thick,dotted] ($(Sm.north west)+(-0.3,0.6)$)  rectangle ($(Rm.south east)+(0.3,-0.6)$);
+    \draw[red,thick,dotted] ($(Sn.north west)+(-0.3,0.6)$)  rectangle ($(Rn.south east)+(0.3,-0.6)$);
+    
+    \node[green] (masks) at ($(Rm.north east)+(1,0.6)$) {\textbf{Masks}};
+    \node[red] (nomasks) at ($(Rn.south east)+(1.3,-0.6)$) {\textbf{No Masks}};
+    
     
     \path[->] (Sm) edge [bend left] node {$\alpha$} (Sn);
     \path[->] (Sn) edge [bend left] node {$\omega$} (Sm);
@@ -56,7 +63,6 @@ pacman::p_load(tidyverse)
     \path[->] (Sn) edge node {$\lambda$} (In);
     \path[->] (In) edge node {$\gamma$} (Rn);
     \path[->] (Im) edge node {$\gamma$} (Rm);
-    
 
 \end{tikzpicture}
 \end{center}
@@ -261,7 +267,7 @@ The measures I am currently considering are represented by survey-like questions
     
 
 \end{tikzpicture}
-\caption{The theory of planned behaviour}
+\caption{The theory of planned behaviour, from https://www.sciencedirect.com/science/article/pii/S0377221711009817}
 \end{figure}
 \end{center}
 
@@ -326,6 +332,44 @@ TBD
     
 
 \end{tikzpicture}
-\caption{The health belief model}
+\caption{The health belief model, from https://www.sciencedirect.com/science/article/pii/S0377221711009817}
 \end{figure}
 \end{center}
+
+## Protection motivation theory
+
+I have not had many thoughts on this one, but Emily has suggested it.  She also believes that they have untapped data relating to COVID and this theory.
+
+\begin{center}
+\begin{figure}
+\begin{tikzpicture}[node distance=2cm and 1cm,>=stealth',auto, every place/.style={draw}]
+
+    \node[positive] (intrinsic_reward) [text width=3cm, align=center] at (-0.5, 3) {Intrinsic reward};
+    \node[positive] (extrinsic_reward) [text width=3cm, align=center] at (-0.5, 2) {Extrinsic reward};
+    \node[positive] (resp_eff) [text width=3cm, align=center] at (-0.5, -2) {Response efficacy};
+    \node[positive] (self_eff) [text width=3cm, align=center] at (-0.5, -3) {Self efficacy};
+    
+    \node[negative] (vuln) [text width=3cm, align=center] at (3.5, 3) {Perceived vulnerability};
+    \node[negative] (sev) [text width=3cm, align=center] at (3.5, 2) {Perceived severity};
+    \node[negative] (cost) [text width=3cm, align=center] at (3.5, -2.5) {Response cost};
+    
+    \node (threat) at (1.5, 4.25) {\textbf{Threat appraisal}};
+    \node (coping) at (1.5, -0.75) {\textbf{Coping appraisal}};
+    
+    \node[box] (behav_intention) [text width=3cm, align=center] at (8, 0) {\textbf{Behaviour intention}};
+    \node[box] (info) [text width=2.2cm, align=center] at (-5, 0) {\textbf{Context, Knowledge, Experience}};
+    
+    \draw[black,thick,dotted] ($(intrinsic_reward.north west)+(-0.3,0.6)$)  rectangle ($(sev.south east)+(0.3,-0.6)$);
+    \draw[black,thick,dotted] ($(resp_eff.north west)+(-0.3,0.6)$)  rectangle ($(cost.south east)+(0.3,-0.8)$);
+    
+    \path[->] (info.south) edge [bend right=30] node {} ($(resp_eff.south west)+(-0.3,0)$);
+    \path[->] (info.north) edge [bend left=30] node {} ($(intrinsic_reward.south west)+(-0.3,0)$);
+    \path[<-] (behav_intention.north) edge [bend right=30] node {} ($(vuln.south east)+(0.3,0)$);
+    \path[<-] (behav_intention.south) edge [bend left=30] node {} ($(cost.south east)+(0.3,0)$);
+    
+
+\end{tikzpicture}
+\caption{The protection motivation theory, red is negative effect, green is positive effect. Version from \url{https://www.researchgate.net/figure/Schematic-presentation-of-the-Protection-Motivation-Theory-PMT-and-its-seven_fig1_267102412}}
+\end{figure}
+\end{center}
+
