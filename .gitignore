@@ -47,6 +47,7 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
+*.png # Don't upload the images
 
 # R
 .Rproj

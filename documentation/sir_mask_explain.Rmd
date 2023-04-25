@@ -52,12 +52,12 @@ pacman::p_load(tidyverse)
     \node[red] (nomasks) at ($(Rn.south east)+(1.3,-0.6)$) {\textbf{No Masks}};
     
     
-    \path[->] (Sm) edge [bend left] node {$\alpha$} (Sn);
-    \path[->] (Sn) edge [bend left] node {$\omega$} (Sm);
-    \path[->] (Im) edge [bend left] node {$\alpha$} (In);
-    \path[->] (In) edge [bend left] node {$\omega$} (Im);
-    \path[->] (Rm) edge [bend left] node {$\alpha$} (Rn);
-    \path[->] (Rn) edge [bend left] node {$\omega$} (Rm);
+    \path[->] (Sm) edge [bend left] node {$\alpha(t)$} (Sn);
+    \path[->] (Sn) edge [bend left] node {$\omega(t)$} (Sm);
+    \path[->] (Im) edge [bend left] node {$\alpha(t)$} (In);
+    \path[->] (In) edge [bend left] node {$\omega(t)$} (Im);
+    \path[->] (Rm) edge [bend left] node {$\alpha(t)$} (Rn);
+    \path[->] (Rn) edge [bend left] node {$\omega(t)$} (Rm);
     
     \path[->] (Sm) edge node {$\lambda$} (Im);
     \path[->] (Sn) edge node {$\lambda$} (In);
@@ -69,8 +69,9 @@ pacman::p_load(tidyverse)
 
 ## Parameter description
 
+
 - $\lambda$ is the force of infection, assuming a form of FD
-- $\frac{1}{\gamma}$ is average rate of recovery
+- $\frac{1}{\gamma}$ is average infectious period
 - $\alpha$ is transition rate from wearing a mask to not wearing a mask
 - $\omega$ is transition rate from not wearing a mask to wearing a mask
 
@@ -89,12 +90,12 @@ Further parameters that will pop up
 
 $$
   \begin{aligned}
-    \dot{S}_{M} & =  -\lambda (1-c) S_{M} - \alpha S_{M} + \omega S_{N}\\
-    \dot{S}_{N} & =  -\lambda S_{N} + \alpha S_{M} - \omega S_{N}\\
-    \dot{I}_{M} & = \lambda (1-c) S_{M} - \alpha I_{M} + \omega I_{N} - \gamma I_{M}\\
-    \dot{I}_{N} & = \lambda S_{N} + \alpha I_{M} - \omega I_{N} - \gamma I_{N}\\
-    \dot{R}_M & = \gamma I_{M}  - \alpha R_{M} + \omega R_{N}\, \\
-    \dot{R}_N & = \gamma I_{N} + \alpha R_{M} - \omega R_{N} \, ,
+    \dot{S}_{M} & =  -\lambda(t) (1-c) S_{M} - \alpha(t) S_{M} + \omega(t) S_{N}\\
+    \dot{S}_{N} & =  -\lambda(t) S_{N} + \alpha(t) S_{M} - \omega(t) S_{N}\\
+    \dot{I}_{M} & = \lambda(t) (1-c) S_{M} - \alpha(t) I_{M} + \omega(t) I_{N} - \gamma I_{M}\\
+    \dot{I}_{N} & = \lambda(t) S_{N} + \alpha(t) I_{M} - \omega(t) I_{N} - \gamma I_{N}\\
+    \dot{R}_M & = \gamma I_{M}  - \alpha(t) R_{M} + \omega(t) R_{N}\, \\
+    \dot{R}_N & = \gamma I_{N} + \alpha(t) R_{M} - \omega(t) R_{N} \, ,
   \end{aligned}
 $$
 
@@ -157,6 +158,17 @@ Then $R(t) = \sigma(t)$ where $\sigma(t)$ is the largest (absolute) eigenvalue o
 * $a = (1 - p)(\gamma + y) + x$, (total rate of change in $I_N$ accounting for reduced infections due to mask ($1-p$)?)
 * $b = (1 - p)y + \gamma + x$, and (total rate of change in $I_M$ accounting for reduced infections due to mask ($1-p$)?)
 * $\Gamma = \frac{\beta}{\gamma(\gamma + x + y)}$ ($R_0$ with no mask effects ($p = c = 0$))
+
+we can succinctly write
+
+$$
+  \sigma(t) = \Gamma\left( (1-c) S_M a + S_N b \right)\, .
+$$
+
+### Misc
+
+* Change $\alpha$ and $\omega$ to incorporate theory of planned behaviour?  Use logistic regression to get probability of compliance per capita, convert to rate (odds ratio?) and use this instead of alpha and omega.  In this setting, probably very much need different probabilities for each class.
+
 * Can look at $I = I_N + I_M$ and $M = I_M + S_M + R_M$ and maybe work out some equilibriums?  First (wrong) solution thinks that
 
 $$
@@ -165,13 +177,6 @@ $$
 
 Problem is that $\omega$ and $\alpha$ depend on the disease states
 
-we can succinctly write
-
-$$
-  \sigma(t) = \Gamma\left( (1-c) S_M a + S_N b \right)\, .
-$$
-
-* Change $\alpha$ and $\omega$ to incorporate theory of planned behaviour?  Use logistic regression to get probability of compliance per capita, convert to rate (odds ratio?) and use this instead of alpha and omega.  In this setting, probably very much need different probabilities for each class.
 
 # Improving the behaviour transitions
 

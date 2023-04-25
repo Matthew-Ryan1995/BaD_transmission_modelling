@@ -8,6 +8,7 @@ Specifically, creates  SIR object with masks, makes for simplier code running.
 Also incolude a main arguement so I can import this into other python scripts?
 
 Looking at adding in samples size N, not just scaling down
+Need to include test to see if epidemic is finished
 
 @author: rya200
 """
@@ -68,6 +69,11 @@ class msir(object):
             json_data[key] = value["exp"]
         return json_data
 
+    def update_params(self, **kwargs):
+        args = kwargs
+        for key, value in args.items():  # this is because I like the . notation. e.g. self.transmission
+            self.__setattr__(key, value)
+
     def rate_to_infect(self, Im, In):
         return self.transmission * (In + (1 - self.inf_mask_efficacy) * Im)
 
@@ -75,7 +81,8 @@ class msir(object):
         return self.mask_social * (tot_mask_prop) + self.mask_fear * (tot_inf)
 
     def rate_to_no_mask(self, tot_no_mask_prop, tot_uninf):
-        return self.nomask_social * (tot_no_mask_prop) + self.nomask_fear * (tot_uninf)
+        # * (tot_uninf)
+        return self.nomask_social * (tot_no_mask_prop) + self.nomask_fear
 
     def run(self, t, PP):
         """
@@ -94,7 +101,7 @@ class msir(object):
             rate of change of population compartments at time t.
         """
         Y = np.zeros((len(PP)))
-        N = PP.sum()
+        N = PP.sum() - PP[6]
 
         tot_mask_prop = (PP[0] + PP[2] + PP[4])/N
         tot_inf = (PP[2] + PP[3])/N
@@ -131,6 +138,10 @@ class msir(object):
             PP[4] + omega * PP[5] - mu * PP[4]  # R_m
         Y[5] = gamma * (PP[3]) - nu * PP[5] + alpha * \
             PP[4] - omega * PP[5] - mu * PP[5]  # R_n
+        Y[6] = lam * (1 - self.susc_mask_efficacy) * \
+            PP[0] + lam * PP[1]  # Final Size
+
+        # assert np.isclose(Y[0:6].sum(), 0)
         return Y
 
     def NGM(self, CP):
@@ -183,6 +194,16 @@ class msir(object):
         return Gamma * ((1-self.susc_mask_efficacy) * CP[0] * a + CP[1] * b) / N
 
 
+def event(t, y):
+    if t > 10:
+        ans = y[2] + y[3] - 1
+    else:
+        ans = 1
+    return ans
+
+
+event.terminal = True
+
 if __name__ == "__main__":
     """
         Run the SIR with masks model, display outputs
@@ -191,7 +212,7 @@ if __name__ == "__main__":
     tic = time.time()
     # Time steps/number of days for the disease
     TS = 1.0
-    ND = 200.0
+    ND = 600.0
 
     t_start = 0.0
     t_end = ND
@@ -201,26 +222,27 @@ if __name__ == "__main__":
     # Inital conditions
     N = 1e6
     # Note the order of conditions (M-N)
-    S0_m = 0.
+    S0_m = 1.
     I0_m = 0
     I0_n = 1  # 1% start infected
     R0_n = 0
     R0_m = 0
     S0_n = N - S0_m - I0_m - I0_n - R0_n - R0_m
-    init_cond = (S0_m, S0_n, I0_m, I0_n, R0_m, R0_n)
+    FS = 0
+    init_cond = (S0_m, S0_n, I0_m, I0_n, R0_m, R0_n, FS)
 
-    w1 = 7
-
+    w1 = 8
+    R0 = 5
     # Enter custom params
     cust_params = dict()
-    cust_params["transmission"] = 1.4
+    cust_params["transmission"] = R0*0.4
     cust_params["infectious_period"] = 1/0.4
-    # cust_params["immune_period"] = 0
+    # cust_params["immune_period"] = 240
     cust_params["av_lifespan"] = 0
-    cust_params["susc_mask_efficacy"] = 0.85
-    cust_params["inf_mask_efficacy"] = 0
+    cust_params["susc_mask_efficacy"] = 0.8
+    cust_params["inf_mask_efficacy"] = 0.8
     cust_params["nomask_social"] = 0.5
-    cust_params["nomask_fear"] = 0
+    cust_params["nomask_fear"] = 0.
     cust_params["mask_social"] = 0.05 * w1
     cust_params["mask_fear"] = w1
     model = msir(**cust_params)
@@ -229,7 +251,8 @@ if __name__ == "__main__":
     RES = spi.integrate.solve_ivp(fun=model.run,
                                   t_span=[t_start, t_end],
                                   y0=init_cond,
-                                  t_eval=t_range)
+                                  t_eval=t_range,
+                                  events=[event])
     dat = RES.y.T
 
     toc = time.time()
@@ -244,8 +267,8 @@ if __name__ == "__main__":
     # %% plotting
 
     sir_R0 = model.transmission / (1/model.infectious_period)
-    # sirmn_R0 = model.transmission*(
-    #     init_cond[1] + (1 - model.susc_mask_efficacy) * init_cond[0]) / (1/model.infectious_period)
+    sirmn_R0 = model.transmission*(
+        init_cond[1] + (1 - model.susc_mask_efficacy) * init_cond[0]) / (1/model.infectious_period)
 
     plt.figure()
     plt.plot(t_range, Rt)
@@ -284,7 +307,7 @@ if __name__ == "__main__":
     plt.plot(dat[:, 0] + dat[:, 1], color="y", label="Susceptibles")
     plt.plot(dat[:, 2] + dat[:, 3], color="g", label="Infectious")
     plt.plot(dat[:, 4] + dat[:, 5], color="r", label="Recovereds")
-    plt.plot([tt, tt], [0, 1], ':k')
+    # plt.plot([tt, tt], [0, 1], ':k')
     plt.legend()
     plt.xlabel("time")
     plt.ylabel("proportion")
@@ -299,44 +322,64 @@ if __name__ == "__main__":
     plt.ylabel("proportion")
     plt.show()
 
+    plt.figure(figsize=[8, 8*0.618], dpi=600)
+    plt.title("Masks vs infections")
+    plt.plot(np.sum(dat[:, 2:4], axis=1)/N, np.sum(dat[:, 0:5:2]/N, axis=1))
+    plt.xlabel("Proportion of infectious")
+    plt.ylabel("Proportion of masks")
+    plt.savefig(fname="img/mask_vs_infected.png")
+    plt.show()
+
+    plt.figure(figsize=[8, 8*0.618], dpi=600)
+    plt.title("S vs infections")
+    plt.plot(np.sum(dat[:, 2:4], axis=1)/N, np.sum(dat[:, 0:2], axis=1)/N)
+    plt.xlabel("Proportion of infectious")
+    plt.ylabel("Proportion of S")
+    plt.savefig(fname="img/S_vs_infected.png")
+    plt.show()
+
     # Sub plots
     fig, axs = plt.subplots(2, sharex=True, sharey=True)
     fig.suptitle('Masked compartments')
     axs[0].set_title("Masks")
-    axs[0].plot(t_range, dat[:, 0], color="y", label="Susceptibles")
-    axs[0].plot(t_range, dat[:, 2], color="g", label="Infectious")
-    axs[0].plot(t_range, dat[:, 4], color="r", label="Recovereds")
+    axs[0].plot(dat[:, 0], color="y", label="Susceptibles")
+    axs[0].plot(dat[:, 2], color="g", label="Infectious")
+    axs[0].plot(dat[:, 4], color="r", label="Recovereds")
     axs[0].legend()
 
     axs[1].set_title("No Masks")
-    axs[1].plot(t_range, dat[:, 1], color="y", label="Susceptibles")
-    axs[1].plot(t_range, dat[:, 3], color="g", label="Infectious")
-    axs[1].plot(t_range, dat[:, 5], color="r", label="Recovereds")
+    axs[1].plot(dat[:, 1], color="y", label="Susceptibles")
+    axs[1].plot(dat[:, 3], color="g", label="Infectious")
+    axs[1].plot(dat[:, 5], color="r", label="Recovereds")
     axs[1].legend()
     fig.tight_layout()
     plt.show()
 
     # Infection
+    a = 0
     plt.figure()
     # plt.plot(dat[:, 2], color="green", linestyle="dashed", label="I - Mask")
     # plt.plot(dat[:, 3], color="green", linestyle=":", label="I - No Mask")
-    plt.plot(dat[:, 2] + dat[:, 3], color="green", label="I")
+    plt.plot(dat[a:, 2] + dat[a:, 3], color="green", label="I")
     plt.legend()
     plt.show()
 
-    fig, ax = plt.subplots()
-    ax.set_title("All states")
-    ax.plot(dat[:, 0] + dat[:, 2] + dat[:, 4], label="Masks",
-            c="y", linestyle="-")
-    ax.plot(dat[:, 1] + dat[:, 3] + dat[:, 5], label="No Masks",
-            c="b", linestyle="--")
+    # tmp = spi.signal.find_peaks(
+    #     dat[:, 2] + dat[:, 3], height=(10, None), prominence=(10, None))
 
-    ax.set_ylabel("Mask uptake")
-    ax.set_xlabel("Days")
-    plt.legend()
-    ax2 = ax.twinx()
-    ax2.plot(dat[:, 2] + dat[:, 3], color="green", label="I", linestyle=":")
-    ax2.set_ylabel("Infections")
-    ax2.ticklabel_format(style="sci")
-    plt.legend()
-    plt.show()
+    # fig, ax = plt.subplots()
+    # ax.set_title("All states")
+    # ax.plot(dat[:, 0] + dat[:, 2] + dat[:, 4], label="Masks",
+    #         c="y", linestyle="-")
+    # ax.plot(dat[:, 1] + dat[:, 3] + dat[:, 5], label="No Masks",
+    #         c="b", linestyle="--")
+
+    # ax.set_ylabel("Mask uptake")
+    # ax.set_xlabel("Days")
+    # plt.legend()
+    # ax2 = ax.twinx()
+    # ax2.plot(dat[:, 2] + dat[:, 3], color="green", label="I", linestyle=":")
+    # ax2.set_ylabel("Infections")
+    # ax2.ticklabel_format(style="sci")
+    # plt.legend()
+    # plt.show()
