@@ -78,11 +78,10 @@ class msir(object):
         return self.transmission * (In + (1 - self.inf_mask_efficacy) * Im)
 
     def rate_to_mask(self, tot_mask_prop, tot_inf):
-        return self.mask_social * (tot_mask_prop) + self.mask_fear * (tot_inf)
+        return self.mask_social * (tot_mask_prop) + self.mask_fear * (tot_inf) + self.mask_const
 
     def rate_to_no_mask(self, tot_no_mask_prop, tot_uninf):
-        # * (tot_uninf)
-        return self.nomask_social * (tot_no_mask_prop) + self.nomask_fear
+        return self.nomask_social * (tot_no_mask_prop) + self.nomask_fear * (tot_uninf) + self.nomask_const
 
     def run(self, t, PP):
         """
@@ -245,6 +244,8 @@ if __name__ == "__main__":
     cust_params["nomask_fear"] = 0.
     cust_params["mask_social"] = 0.05 * w1
     cust_params["mask_fear"] = w1
+    cust_params["mask_const"] = 0.
+    cust_params["nomask_const"] = 0.
     model = msir(**cust_params)
 
     # Run integrator, convert results to long format
@@ -259,35 +260,35 @@ if __name__ == "__main__":
 
     print("Script time is %f" % (toc - tic))
 
-    Rt = list(map(lambda t: model.NGM(dat[t, :]), range(len(t_range))))
+    # Rt = list(map(lambda t: model.NGM(dat[t, :]), range(len(t_range))))
 
-    switch_time = next(i for i, V in enumerate(Rt) if V <= 1)
-    tt = t_range[switch_time]
+    # switch_time = next(i for i, V in enumerate(Rt) if V <= 1)
+    # tt = t_range[switch_time]
 
     # %% plotting
 
-    sir_R0 = model.transmission / (1/model.infectious_period)
-    sirmn_R0 = model.transmission*(
-        init_cond[1] + (1 - model.susc_mask_efficacy) * init_cond[0]) / (1/model.infectious_period)
+    # sir_R0 = model.transmission / (1/model.infectious_period)
+    # sirmn_R0 = model.transmission*(
+    #     init_cond[1] + (1 - model.susc_mask_efficacy) * init_cond[0]) / (1/model.infectious_period)
 
-    plt.figure()
-    plt.plot(t_range, Rt)
-    plt.plot([t_range[0], t_range[-1]], [1, 1], ':k')
-    plt.plot([tt, tt], [0, 2], ':k')
-    plt.plot([t_range[0], t_range[-1]],
-             [sir_R0,
-              sir_R0],
-             ":r",
-             label="SIR R0")
+    # plt.figure()
+    # plt.plot(t_range, Rt)
+    # plt.plot([t_range[0], t_range[-1]], [1, 1], ':k')
+    # plt.plot([tt, tt], [0, 2], ':k')
     # plt.plot([t_range[0], t_range[-1]],
-    #          [sirmn_R0,
-    #           sirmn_R0],
-    #          ":b",
-    #          label="SIR-MN R0")
-    plt.legend()
-    plt.xlabel("time")
-    plt.ylabel("R_t")
-    plt.show()
+    #          [sir_R0,
+    #           sir_R0],
+    #          ":r",
+    #          label="SIR R0")
+    # # plt.plot([t_range[0], t_range[-1]],
+    # #          [sirmn_R0,
+    # #           sirmn_R0],
+    # #          ":b",
+    # #          label="SIR-MN R0")
+    # plt.legend()
+    # plt.xlabel("time")
+    # plt.ylabel("R_t")
+    # plt.show()
 
     # Everything everywhere all at once
     plt.figure()
@@ -313,56 +314,65 @@ if __name__ == "__main__":
     plt.ylabel("proportion")
     plt.show()
 
+    if model.mask_social - model.nomask_social == 0:
+        Delta = (model.nomask_fear + model.nomask_const) / \
+            (model.mask_const + model.nomask_fear + model.nomask_const)
+    else:
+        Delta = ((model.mask_social - model.nomask_social + model.mask_const + model.nomask_fear + model.nomask_const) - np.sqrt((model.mask_social - model.nomask_social + model.mask_const +
+                                                                                                                                  model.nomask_fear + model.nomask_const)**2 - 4 * (model.mask_social - model.nomask_social) * (model.nomask_fear + model.nomask_const))) / (2 * (model.mask_social - model.nomask_social))
+
     # Masks
     plt.figure()
-    plt.plot(dat[:, 0] + dat[:, 2] + dat[:, 4], label="Masks")
-    plt.plot(dat[:, 1] + dat[:, 3] + dat[:, 5], label="No Masks")
+    plt.plot((dat[:, 0] + dat[:, 2] + dat[:, 4])/N, label="Masks")
+    plt.plot((dat[:, 1] + dat[:, 3] + dat[:, 5])/N, label="No Masks")
+
+    plt.plot([0, dat[:, 1].size], [Delta, Delta], ":k")
     plt.legend()
     plt.xlabel("time")
     plt.ylabel("proportion")
     plt.show()
 
-    plt.figure(figsize=[8, 8*0.618], dpi=600)
-    plt.title("Masks vs infections")
-    plt.plot(np.sum(dat[:, 2:4], axis=1)/N, np.sum(dat[:, 0:5:2]/N, axis=1))
-    plt.xlabel("Proportion of infectious")
-    plt.ylabel("Proportion of masks")
-    plt.savefig(fname="img/mask_vs_infected.png")
-    plt.show()
+    # plt.figure(figsize=[8, 8*0.618], dpi=600)
+    # plt.title("Masks vs infections")
+    # plt.plot(np.sum(dat[:, 2:4], axis=1)/N, np.sum(dat[:, 0:5:2]/N, axis=1))
+    # plt.xlabel("Proportion of infectious")
+    # plt.ylabel("Proportion of masks")
+    # plt.savefig(fname="img/mask_vs_infected.png")
+    # plt.show()
 
-    plt.figure(figsize=[8, 8*0.618], dpi=600)
-    plt.title("S vs infections")
-    plt.plot(np.sum(dat[:, 2:4], axis=1)/N, np.sum(dat[:, 0:2], axis=1)/N)
-    plt.xlabel("Proportion of infectious")
-    plt.ylabel("Proportion of S")
-    plt.savefig(fname="img/S_vs_infected.png")
-    plt.show()
+    # plt.figure(figsize=[8, 8*0.618], dpi=600)
+    # plt.title("S vs infections")
+    # plt.plot(np.sum(dat[:, 2:4], axis=1)/N, np.sum(dat[:, 0:2], axis=1)/N)
+    # plt.xlabel("Proportion of infectious")
+    # plt.ylabel("Proportion of S")
+    # plt.savefig(fname="img/S_vs_infected.png")
+    # plt.show()
 
-    # Sub plots
-    fig, axs = plt.subplots(2, sharex=True, sharey=True)
-    fig.suptitle('Masked compartments')
-    axs[0].set_title("Masks")
-    axs[0].plot(dat[:, 0], color="y", label="Susceptibles")
-    axs[0].plot(dat[:, 2], color="g", label="Infectious")
-    axs[0].plot(dat[:, 4], color="r", label="Recovereds")
-    axs[0].legend()
+    # # Sub plots
+    # fig, axs = plt.subplots(2, sharex=True, sharey=True)
+    # fig.suptitle('Masked compartments')
+    # axs[0].set_title("Masks")
+    # axs[0].plot(dat[:, 0], color="y", label="Susceptibles")
+    # axs[0].plot(dat[:, 2], color="g", label="Infectious")
+    # axs[0].plot(dat[:, 4], color="r", label="Recovereds")
+    # axs[0].legend()
 
-    axs[1].set_title("No Masks")
-    axs[1].plot(dat[:, 1], color="y", label="Susceptibles")
-    axs[1].plot(dat[:, 3], color="g", label="Infectious")
-    axs[1].plot(dat[:, 5], color="r", label="Recovereds")
-    axs[1].legend()
-    fig.tight_layout()
-    plt.show()
+    # axs[1].set_title("No Masks")
+    # axs[1].plot(dat[:, 1], color="y", label="Susceptibles")
+    # axs[1].plot(dat[:, 3], color="g", label="Infectious")
+    # axs[1].plot(dat[:, 5], color="r", label="Recovereds")
+    # axs[1].legend()
+    # fig.tight_layout()
+    # plt.show()
 
-    # Infection
-    a = 0
-    plt.figure()
-    # plt.plot(dat[:, 2], color="green", linestyle="dashed", label="I - Mask")
-    # plt.plot(dat[:, 3], color="green", linestyle=":", label="I - No Mask")
-    plt.plot(dat[a:, 2] + dat[a:, 3], color="green", label="I")
-    plt.legend()
-    plt.show()
+    # # Infection
+    # a = 0
+    # plt.figure()
+    # # plt.plot(dat[:, 2], color="green", linestyle="dashed", label="I - Mask")
+    # # plt.plot(dat[:, 3], color="green", linestyle=":", label="I - No Mask")
+    # plt.plot(dat[a:, 2] + dat[a:, 3], color="green", label="I")
+    # plt.legend()
+    # plt.show()
 
     # tmp = spi.signal.find_peaks(
     #     dat[:, 2] + dat[:, 3], height=(10, None), prominence=(10, None))

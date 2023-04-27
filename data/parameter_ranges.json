@@ -130,5 +130,29 @@
       "temperature": "no",
       "water": "no",
       "symbol" : "$\\omega_2$"
+  },
+  "mask_const" : {
+      "min" : 0.0,
+      "exp" : 0.0,
+      "max" : 10.0,
+      "description": "constant transisition into mask wearing",
+      "units" : "per time",
+      "source" : "Currently made up \\cite{} ",
+      "location": "",
+      "temperature": "no",
+      "water": "no",
+      "symbol" : "$\\omega_3$"
+  },
+  "nomask_const" : {
+      "min" : 0.0,
+      "exp" : 0.0,
+      "max" : 10.0,
+      "description": "constant transisition into no mask wearing",
+      "units" : "per time",
+      "source" : "Currently made up \\cite{} ",
+      "location": "",
+      "temperature": "no",
+      "water": "no",
+      "symbol" : "$\\alpha_3$"
   }
 }

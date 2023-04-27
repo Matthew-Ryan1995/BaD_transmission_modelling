@@ -59,8 +59,8 @@ pacman::p_load(tidyverse)
     \path[->] (Rm) edge [bend left] node {$\alpha(t)$} (Rn);
     \path[->] (Rn) edge [bend left] node {$\omega(t)$} (Rm);
     
-    \path[->] (Sm) edge node {$\lambda$} (Im);
-    \path[->] (Sn) edge node {$\lambda$} (In);
+    \path[->] (Sm) edge node {$\lambda(t)$} (Im);
+    \path[->] (Sn) edge node {$\lambda(t)$} (In);
     \path[->] (In) edge node {$\gamma$} (Rn);
     \path[->] (Im) edge node {$\gamma$} (Rm);
 
@@ -104,15 +104,69 @@ where
 $$
   \begin{aligned}
     \lambda(t) & = \beta \left( I_{N} + (1-p) I_M \right)\\
-    \omega(t) & = \omega_1 (S_M + I_M + R_M) + \omega_2(I_M + I_{N})\\
-    \alpha(t) & = \alpha_1 (S_{N} + I_{N} + R_N) + \alpha_2(1 - (I_M + I_{N}))\, .\\
+    \omega(t) & = \omega_1 (S_M + I_M + R_M) + \omega_2(I_M + I_{N}) + \omega_3\\
+    \alpha(t) & = \alpha_1 (S_{N} + I_{N} + R_N) + \alpha_2(1 - (I_M + I_{N})) + \alpha_3\, .\\
   \end{aligned}
 $$
+
+## Disease-free equilibrium of the behaviour
+
+The disease-free equilibrium of the behaviour $(M^*, N^*)$ is
+
+$$
+  (1 - \Delta, \Delta)
+$$
+
+where
+
+$$
+\Delta =
+  \begin{cases}
+    \frac{(\omega_1 - \alpha_1 + \omega_3 + \alpha_2 + \alpha_3) - \sqrt{(\omega_1 - \alpha_1 + \omega_3 + \alpha_2 + \alpha_3)^2 - 4(\omega_1 - \alpha_1)(\alpha_2 + \alpha_3)}}{2(\omega_1 - \alpha_1)} & \text{ if } \omega_1 - \alpha_1\neq 0\,, \\
+    \frac{\alpha_2 + \alpha_3}{\omega_3 + \alpha_2 + \alpha_3} & \text{ else.}
+  \end{cases}
+$$
+
+**Proof**:
+
+Considering $N = S_N + I_N + R_N$, we can write
+
+$$
+  \dot{N} = -\omega(t) N + \alpha(t) M\, .
+$$
+
+In the disease-free equilibrium, $I_N = I_M = 0$, so this reduces to
+
+$$
+  \dot{N} = -(\omega_1 M + \omega_3) N + (\alpha_1N + (\alpha_2 + \alpha_3)) M\, .
+$$
+
+Using $M + N = 1$, we can reduce this to 
+
+$$
+  \dot{N} = cN^2 - (c + k) N + (k - \omega_3)\,
+$$
+where $c = (\omega_1 - \alpha_1)$ and $k = \alpha_2 + \alpha_3 + \omega_3$.  Equating $\dot{N} = 0$, we need to consider two situations.  First, when $c = 0$ we get
+
+$$
+  N = \frac{k - \omega_3}{k}\, .
+$$
+
+Second, when $c \neq 0$ (and using $0\leq N \leq 1$) we solve the quadratic equation to get
+
+$$
+  N = \frac{(c + k) - \sqrt{(c + k)^2 - 4c(k - \omega_3)}}{2c}\, .
+$$
+
+Subbing in $c$ and $k$ gets the result.
+
+
 
 ## Next generation matrix
 
 - The disease states are $I_M$ and $I_N$
 - Cannot ignore $S_M$ and $S_N$!
+- THIS NEEDS TO BE REDONE
 
 The flow in is
 
