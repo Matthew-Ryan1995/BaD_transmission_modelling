@@ -10,10 +10,14 @@ Also incolude a main arguement so I can import this into other python scripts?
 Looking at adding in samples size N, not just scaling down
 Need to include test to see if epidemic is finished
 
+Need to look at my equilibirum a little bit more, I can get a switch.  I am still getting the correct equilibirum, but predicting the wrong 
+behaviour
+
 @author: rya200
 """
 
 # %% Packages/libraries
+from scipy.optimize import fsolve
 import numpy as np
 import scipy as spi
 import matplotlib.pyplot as plt
@@ -100,7 +104,7 @@ class msir(object):
             rate of change of population compartments at time t.
         """
         Y = np.zeros((len(PP)))
-        N = PP.sum() - PP[6]
+        N = PP.sum() - PP[6] - PP[7]
 
         tot_mask_prop = (PP[0] + PP[2] + PP[4])/N
         tot_inf = (PP[2] + PP[3])/N
@@ -139,6 +143,8 @@ class msir(object):
             PP[4] - omega * PP[5] - mu * PP[5]  # R_n
         Y[6] = lam * (1 - self.susc_mask_efficacy) * \
             PP[0] + lam * PP[1]  # Final Size
+        Y[7] = lam * (1 - self.susc_mask_efficacy) * \
+            PP[0]  # Final Size for masks
 
         # assert np.isclose(Y[0:6].sum(), 0)
         return Y
@@ -219,16 +225,17 @@ if __name__ == "__main__":
     t_range = np.arange(t_start, t_end+t_inc, t_inc)
 
     # Inital conditions
-    N = 1e6
+    N = 1
     # Note the order of conditions (M-N)
-    S0_m = 1.
+    S0_m = 1e-6
     I0_m = 0
-    I0_n = 1  # 1% start infected
+    I0_n = 1e-6  # 1% start infected
     R0_n = 0
     R0_m = 0
     S0_n = N - S0_m - I0_m - I0_n - R0_n - R0_m
     FS = 0
-    init_cond = (S0_m, S0_n, I0_m, I0_n, R0_m, R0_n, FS)
+    FS_m = 0
+    init_cond = (S0_m, S0_n, I0_m, I0_n, R0_m, R0_n, FS, FS_m)
 
     w1 = 8
     R0 = 5
@@ -236,59 +243,83 @@ if __name__ == "__main__":
     cust_params = dict()
     cust_params["transmission"] = R0*0.4
     cust_params["infectious_period"] = 1/0.4
-    # cust_params["immune_period"] = 240
+    cust_params["immune_period"] = 240
     cust_params["av_lifespan"] = 0
     cust_params["susc_mask_efficacy"] = 0.8
     cust_params["inf_mask_efficacy"] = 0.8
     cust_params["nomask_social"] = 0.5
-    cust_params["nomask_fear"] = 0.
+    cust_params["nomask_fear"] = 0.0
     cust_params["mask_social"] = 0.05 * w1
     cust_params["mask_fear"] = w1
-    cust_params["mask_const"] = 0.
-    cust_params["nomask_const"] = 0.
+    cust_params["mask_const"] = 0.01
+    cust_params["nomask_const"] = 0.01
     model = msir(**cust_params)
+
+    # S0_m = 1-Delta
+    # I0_m = 0
+    # I0_n = 1e-6  # 1% start infected
+    # R0_n = 0
+    # R0_m = 0
+    # S0_n = Delta - I0_n
+    # FS = 0
+    # FS_m = 0
+    # init_cond = (S0_m, S0_n, I0_m, I0_n, R0_m, R0_n, FS, FS_m)
 
     # Run integrator, convert results to long format
     RES = spi.integrate.solve_ivp(fun=model.run,
                                   t_span=[t_start, t_end],
                                   y0=init_cond,
                                   t_eval=t_range,
-                                  events=[event])
+                                  # events=[event]
+                                  )
     dat = RES.y.T
 
     toc = time.time()
 
+    # model.rate_to_mask(dat[-1, 0:5:2].sum(), dat[-1, 2:4].sum())
+    # model.rate_to_no_mask(1-dat[-1, 0:5:2].sum(), 1-dat[-1, 2:4].sum())
+
     print("Script time is %f" % (toc - tic))
 
-    # Rt = list(map(lambda t: model.NGM(dat[t, :]), range(len(t_range))))
+    Rt = list(map(lambda t: model.NGM(dat[t, :]), range(dat.shape[0])))
 
-    # switch_time = next(i for i, V in enumerate(Rt) if V <= 1)
-    # tt = t_range[switch_time]
+    switch_time = next(i for i, V in enumerate(Rt) if V <= 1)
+    tt = t_range[switch_time]
+
+    if model.mask_social - model.nomask_social != 0:
+        Delta = ((model.mask_social - model.nomask_social + model.mask_const + model.nomask_fear + model.nomask_const) - np.sqrt((model.mask_social - model.nomask_social + model.mask_const +
+                                                                                                                                  model.nomask_fear + model.nomask_const)**2 - 4 * (model.mask_social - model.nomask_social) * (model.nomask_fear + model.nomask_const))) / (2 * (model.mask_social - model.nomask_social))
+    elif (model.mask_const + model.nomask_fear + model.nomask_const) == 0:
+        Delta = S0_m/N
+    else:
+        Delta = (model.nomask_fear + model.nomask_const) / \
+            (model.mask_const + model.nomask_fear + model.nomask_const)
 
     # %% plotting
 
-    # sir_R0 = model.transmission / (1/model.infectious_period)
-    # sirmn_R0 = model.transmission*(
-    #     init_cond[1] + (1 - model.susc_mask_efficacy) * init_cond[0]) / (1/model.infectious_period)
+    sir_R0 = model.transmission / (1/model.infectious_period)
+    sirmn_R0 = model.transmission*(
+        init_cond[1] + (1 - model.susc_mask_efficacy) * init_cond[0]) / (1/model.infectious_period)
 
-    # plt.figure()
-    # plt.plot(t_range, Rt)
-    # plt.plot([t_range[0], t_range[-1]], [1, 1], ':k')
-    # plt.plot([tt, tt], [0, 2], ':k')
+    plt.figure()
+    plt.plot(Rt)
+    plt.plot([t_range[0], t_range[-1]], [1, 1], ':k')
+    plt.plot([tt, tt], [0, 2], ':k')
+    plt.plot([t_range[0], t_range[-1]],
+             [sir_R0,
+              sir_R0],
+             ":r",
+             label="SIR R0")
+    # plt.plot(R0 * (dat[:, 1]/N + (1-0.8) * dat[:, 0]/N)) # Almost R_eff in a much simpler argument
     # plt.plot([t_range[0], t_range[-1]],
-    #          [sir_R0,
-    #           sir_R0],
-    #          ":r",
-    #          label="SIR R0")
-    # # plt.plot([t_range[0], t_range[-1]],
-    # #          [sirmn_R0,
-    # #           sirmn_R0],
-    # #          ":b",
-    # #          label="SIR-MN R0")
-    # plt.legend()
-    # plt.xlabel("time")
-    # plt.ylabel("R_t")
-    # plt.show()
+    #          [sirmn_R0,
+    #           sirmn_R0],
+    #          ":b",
+    #          label="SIR-MN R0")
+    plt.legend()
+    plt.xlabel("time")
+    plt.ylabel("R_t")
+    plt.show()
 
     # Everything everywhere all at once
     plt.figure()
@@ -308,18 +339,11 @@ if __name__ == "__main__":
     plt.plot(dat[:, 0] + dat[:, 1], color="y", label="Susceptibles")
     plt.plot(dat[:, 2] + dat[:, 3], color="g", label="Infectious")
     plt.plot(dat[:, 4] + dat[:, 5], color="r", label="Recovereds")
-    # plt.plot([tt, tt], [0, 1], ':k')
+    plt.plot([15, 15], [0, N], ':k')
     plt.legend()
     plt.xlabel("time")
     plt.ylabel("proportion")
     plt.show()
-
-    if model.mask_social - model.nomask_social == 0:
-        Delta = (model.nomask_fear + model.nomask_const) / \
-            (model.mask_const + model.nomask_fear + model.nomask_const)
-    else:
-        Delta = ((model.mask_social - model.nomask_social + model.mask_const + model.nomask_fear + model.nomask_const) - np.sqrt((model.mask_social - model.nomask_social + model.mask_const +
-                                                                                                                                  model.nomask_fear + model.nomask_const)**2 - 4 * (model.mask_social - model.nomask_social) * (model.nomask_fear + model.nomask_const))) / (2 * (model.mask_social - model.nomask_social))
 
     # Masks
     plt.figure()
@@ -393,3 +417,99 @@ if __name__ == "__main__":
     # ax2.ticklabel_format(style="sci")
     # plt.legend()
     # plt.show()
+
+# %%
+
+
+# def find_final_size(x):
+#     p_N = Delta
+
+#     lam_mn = 1-cust_params["susc_mask_efficacy"]
+#     lam_mm = (1-cust_params["susc_mask_efficacy"]) * \
+#         (1 - cust_params["inf_mask_efficacy"])
+
+#     lam_mn *= Rt[0]
+#     lam_mm *= Rt[0]
+
+#     init = S0_m / N
+
+#     return x - (1 - init * np.exp(-x * (p_N * (lam_mn - lam_mm) + lam_mm)))
+
+
+# tmp = fsolve(find_final_size, x0=[0])
+# tmp2 = dat[-1, 7]/N
+# print("Est FS = %f" % (tmp))
+# print("True FS = %f" % (tmp2))
+
+# %%
+
+# S_tot = np.sum(dat[:, 2:4], axis=1)/N
+# M_tot = np.sum(dat[:, 0:5:2], axis=1)/N
+# N_tot = 1-M_tot
+# S_M = dat[:, 2]/N
+# S_N = dat[:, 3]/N
+
+# ttt = S_tot.size
+# plt.figure()
+# plt.plot(S_M, S_tot*M_tot)
+# plt.show()
+# # plt.plot([0, 1], [0, 1])
+# # plt.plot(S_M[0:ttt], (S_tot*M_tot)[0:ttt])
+
+# plt.figure()
+# plt.plot(S_N + S_M, S_tot)
+# plt.show()
+
+# %%
+
+# n1 = 1-Delta
+# n2 = Delta
+
+
+# def FS_eqn(x):
+#     y = np.zeros(2)
+
+#     y[0] = 1 - np.exp(-R0 * x[0]) - x[0]
+#     y[1] = 1 - np.exp(-R0 * x[1] * (1 - cust_params["susc_mask_efficacy"])
+#                       * (1 - cust_params["inf_mask_efficacy"])) - x[1]
+
+#     return y
+
+
+# est_fs = fsolve(FS_eqn, np.array([0.5, 0.5]))
+
+# %%
+
+beta = cust_params["transmission"]
+p = cust_params["inf_mask_efficacy"]
+c = cust_params["susc_mask_efficacy"]
+nu = 1/cust_params["immune_period"]
+gamma = 1/cust_params["infectious_period"]
+
+i1 = dat[-1, 3]
+D = dat[-1, 1:6:2].sum()
+B = np.array([[beta, (1-p) * beta], [(1-p) * beta, (1-c) * (1-p) * beta]])
+
+
+i2 = (nu * gamma - B[0, 0] * (nu * D - (nu + gamma) * i1)
+      ) * i1 / (B[0, 1] * (nu * D - (nu + gamma) * i1))
+
+s1 = nu * (D - i1) / (B[0, 0] * i1 + B[0, 1] * i2 + nu)
+r1 = D - s1 - i1
+
+s2 = nu * (1 - D - i2)/(B[1, 0] * i1 + B[1, 1] * i2 + nu)
+r2 = 1 - D - s2 - i2
+
+print(dat[-1, 0:6])
+print([s2, s1, i2, i1, r2, r1])
+print(np.array([s1, s2, i1, i2, r1, r2]).sum())
+
+# %%
+
+a = model.rate_to_mask(1-D, dat[-1, 2:4].sum())
+w = model.rate_to_no_mask(D, 1 - dat[-1, 2:4].sum())
+
+print(a * D - w * (1-D))
+print(a * dat[-1, 1] - w * dat[-1, 0])
+print(a * dat[-1, 3] - w * dat[-1, 2])
+print(a * dat[-1, 5] - w * dat[-1, 4])

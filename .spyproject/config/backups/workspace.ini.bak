@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['code/msir_4.py', 'code/07_parallel_phase_fear_explore.py', 'code/exploring_hbm.py', 'code/08_explore_fear_by_final_size.py', 'code/05_parallel_phase_peaks.py', 'code/04_phase_plane2.py', 'code/06_parallel_phase_social_explore.py']
+recent_files = ['code/msir_4.py', 'data/parameter_ranges.json', '../../05_coding/02_messing_around/01_SIR/sir_final_size.py', '../../05_coding/02_messing_around/DE_MC.py', '../../05_coding/02_messing_around/patch_fs.py', '../../05_coding/02_messing_around/sir_equil.py', '../../05_coding/02_messing_around/patch_equil.py']
 
 [main]
 version = 0.2.0

@@ -74,6 +74,7 @@ pacman::p_load(tidyverse)
 - $\frac{1}{\gamma}$ is average infectious period
 - $\alpha$ is transition rate from wearing a mask to not wearing a mask
 - $\omega$ is transition rate from not wearing a mask to wearing a mask
+- $\nu$ is the waning immunity term
 
 Further parameters that will pop up
 
@@ -90,12 +91,12 @@ Further parameters that will pop up
 
 $$
   \begin{aligned}
-    \dot{S}_{M} & =  -\lambda(t) (1-c) S_{M} - \alpha(t) S_{M} + \omega(t) S_{N}\\
-    \dot{S}_{N} & =  -\lambda(t) S_{N} + \alpha(t) S_{M} - \omega(t) S_{N}\\
+    \dot{S}_{M} & =  -\lambda(t) (1-c) S_{M} - \alpha(t) S_{M} + \omega(t) S_{N} + \nu R_M\\
+    \dot{S}_{N} & =  -\lambda(t) S_{N} + \alpha(t) S_{M} - \omega(t) S_{N} + \nu R_N\\
     \dot{I}_{M} & = \lambda(t) (1-c) S_{M} - \alpha(t) I_{M} + \omega(t) I_{N} - \gamma I_{M}\\
     \dot{I}_{N} & = \lambda(t) S_{N} + \alpha(t) I_{M} - \omega(t) I_{N} - \gamma I_{N}\\
-    \dot{R}_M & = \gamma I_{M}  - \alpha(t) R_{M} + \omega(t) R_{N}\, \\
-    \dot{R}_N & = \gamma I_{N} + \alpha(t) R_{M} - \omega(t) R_{N} \, ,
+    \dot{R}_M & = \gamma I_{M}  - \alpha(t) R_{M} + \omega(t) R_{N} - \nu R_M\, \\
+    \dot{R}_N & = \gamma I_{N} + \alpha(t) R_{M} - \omega(t) R_{N} - \nu R_N \, ,
   \end{aligned}
 $$
 
@@ -110,6 +111,8 @@ $$
 $$
 
 ## Disease-free equilibrium of the behaviour
+
+**Case when $\omega_3 + \alpha_2 + \alpha_3 = 0$ and case when those equal 0 and $\omega_2 \neq 0$**.
 
 The disease-free equilibrium of the behaviour $(M^*, N^*)$ is
 
@@ -159,6 +162,8 @@ $$
 $$
 
 Subbing in $c$ and $k$ gets the result.
+
+**NOTE**: Due to the constraint that parameters are positive, we find that no combination of $c, k, \omega_3$ can lead to $N$ being undefined.
 
 
 
