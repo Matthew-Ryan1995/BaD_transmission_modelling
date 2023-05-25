@@ -339,14 +339,19 @@ The measures I am currently considering are represented by survey-like questions
 
 - Durham2012 - Agent based model using HBM, masks and infectious diseases
 
-The health belief model has gone through some renditions (Figure 2), but suggests that actions taken for health benefit are influenced by the following factors:
+The health belief model has gone through some renditions (Figure 2), but suggests that actions taken for health benefit are influenced by the following factors (Re. http://www.sbccimplementationkits.org/demandrmnch/wp-content/uploads/2014/02/Theory-at-a-Glance-A-Guide-For-Health-Promotion-Practice.pdf):
 
-1. **Health motivation**: TBD
+<!-- 1. **Health motivation**: TBD -->
+1. **Self efficacy**: Confidence of one's ability to perform the behaviour
 2. **Perception of illness threat**: This captures both perceived susceptibility to the illness and perceived severity of the illness.
+    a. *Perceived susceptibility*: Belief about chance of getting disease
+    b. *Perceived severity*: Beliefs about the seriousness of the condition and the consequences
 3. **Evaluation of behaviours to counteract threat**: This captures the perceived benefits of the behaviour as well as the perceived barriers to performing the behaviour
-4. **Cues to action**: TBD
+    a. *Perceived Benefits*: Beliefs about the effectiveness of the behaviour to reduce seriousness
+    b. *Perceived barriers*: Belief about material and psychological costs of taking the action
+4. **Cues to action**: External or internal factors that activate the "readiness to change"
 
-Durham and Casman includes the HBM in an gent-based model for disease spread to investigate the impact of behaviour on diseases spread, but decouples this from the epidemiology.  Durham and Casman focuses only on the second two inputs, investigating the sub-inputs to those drivers.  They suggest a fairly simply approach using a logistic regression in the following way.  Let $\pi_i$ be the probability that individual $i$ chooses to take up the behaviour.  Let $X_1, X_2, X_3$ and $X_4$ be an individuals binary indicators of low or high risk for susceptibility, severity, benefits, and barriers respectively.  They model
+Durham and Casman includes the HBM in an agent-based model for disease spread to investigate the impact of behaviour on diseases spread, but decouples this from the epidemiology.  Durham and Casman focuses only on the second two inputs, investigating the sub-inputs to those drivers.  They suggest a fairly simply approach using a logistic regression in the following way.  Let $\pi_i$ be the probability that individual $i$ chooses to take up the behaviour.  Let $X_1, X_2, X_3$ and $X_4$ be an individuals binary indicators of low or high risk for susceptibility, severity, benefits, and barriers respectively.  They model
 \[
   \log\left( \frac{\pi_i}{1 - \pi_i} \right) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 + \beta_4 X_4\, ,
 \]
@@ -371,7 +376,7 @@ TBD
 \begin{figure}
 \begin{tikzpicture}[node distance=2cm and 1cm,>=stealth',auto, every place/.style={draw}]
 
-    \node[box] (healthmotivation) [text width=3cm, align=center] at (5.5, 6) {Health motivation};
+    \node[box] (selfefficacy) [text width=3cm, align=center] at (5.5, 6) {Self Efficacy};
     \node[box] (illnessthreat) [text width=3cm, align=center] at (3, 3) {Perception of illness threat};
     \node[box] (behaviours) [text width=3cm, align=center] at (3, -3) {Evaluation of behaviours to counteract threat};
     \node[box] (action) [text width=3cm, align=center] at (5.5, -6) {Cues to action};
@@ -384,7 +389,7 @@ TBD
     \node[box] (benefit_in) [text width=3cm, align=center] at (-2, -1.5) {Perceived benefits of behaviour};
     \node[box] (barrier_in) [text width=3cm, align=center] at (-2, -4.5) {Perceived barriers to behaviour};
     
-    \path[->] (healthmotivation) edge node {} (heatlhbehaviour);
+    \path[->] (selfefficacy) edge node {} (heatlhbehaviour);
     \path[->] (illnessthreat) edge node {} (heatlhbehaviour);
     \path[->] (behaviours) edge node {} (heatlhbehaviour);
     \path[->] (action) edge node {} (heatlhbehaviour);
@@ -437,3 +442,256 @@ I have not had many thoughts on this one, but Emily has suggested it.  She also 
 \end{figure}
 \end{center}
 
+# A behaviour-infection model
+
+Consider an influenza like illness governed by an $SIRS$ structure:
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm and 1cm,>=stealth',auto, every place/.style={draw}]
+    
+    \node [place] (Sn) [text width=0.75cm, align=center, below=of Sm] {$S$};
+    \node [place] (In) [text width=0.75cm, align=center, below=of Im] {$I$};
+    \node[place] (Rn) [text width=0.75cm, align=center, below=of Rm] {$R$};
+    
+    
+    
+    \path[->] (Sn) edge node {$\lambda(t)$} (In);
+    \path[->] (In) edge node {$\gamma$} (Rn);
+    \path[->] (Rn.north) edge [bend right=90, swap] node {$\nu$} (Sn.north);
+
+\end{tikzpicture}
+\end{center}
+
+where
+
+- $\lambda(t)$ is the force of infection;
+- $1/\gamma$ is the average infection period;
+- $1/\nu$ is the average immunity period, and;
+- $S+I+R = P =1$.
+
+Suppose we introduce a preventative health behaviour $B$ into the population that individuals can choose to take up.  We model this by stratifying the $S$, $I$, and $R$ components into $X_N$ and $X_B$, $X \in \{S, I, R\}$.  The strata $X_N$ represents those in the populations who are not performing the behaviour, and the strata $X_B$ represents those in the population who *are* performing the behaviour.  In fact, to capture radicals for each strata, we add further strata $X_{NN}$ and $X_{BB}$ of individuals who will never/always do the behaviour respectively.  Stratifying the population like this gives the following stratified SIRS model:
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm and 1cm,>=stealth',auto, every place/.style={draw}]
+    
+    \node [place] (Sm) [text width=0.75cm, align=center] {$S_{B}$};
+    \node [place] (Smm) [text width=0.75cm, align=center, below=of Sm, yshift=1.5cm] {$S_{BB}$};
+    \node [place] (Sn) [text width=0.75cm, align=center, above=of Sm] {$S_{N}$};
+    \node [place] (Snn) [text width=0.75cm, align=center, above=of Sn, yshift=-1.5cm] {$S_{NN}$};
+    \node [place] (Im) [text width=0.75cm, align=center, node distance=2.5cm,right=of Sm] {$I_B$};
+    \node [place] (Imm) [text width=0.75cm, align=center, node distance=2.5cm,right=of Smm] {$I_{BB}$};
+    \node [place] (In) [text width=0.75cm, align=center, above=of Im] {$I_{N}$};
+    \node [place] (Inn) [text width=0.75cm, align=center, above=of In, yshift=-1.5cm] {$I_{NN}$};
+    \node[place] (Rm) [text width=0.75cm, align=center, node distance=2.5cm, right=of Im] {$R_B$};
+    \node[place] (Rmm) [text width=0.75cm, align=center, node distance=2.5cm, right=of Imm] {$R_{BB}$};
+    \node[place] (Rn) [text width=0.75cm, align=center, above=of Rm] {$R_N$};
+    \node[place] (Rnn) [text width=0.75cm, align=center, above=of Rn, yshift=-1.5cm] {$R_{NN}$};
+    
+    \draw[green,thick,dotted] ($(Sm.north west)+(-0.3,0.6)$)  rectangle ($(Rmm.south east)+(0.3,-0.6)$);
+    \draw[red,thick,dotted] ($(Snn.north west)+(-0.3,0.6)$)  rectangle ($(Rn.south east)+(0.3,-0.6)$);
+    
+    \node[green] (masks) at ($(Rmm.south east)+(1.5,-0.6)$) {\textbf{Behaviour}};
+    \node[red] (nomasks) at ($(Rnn.north east)+(1.8,0.6)$) {\textbf{No Behaviour}};
+    
+    
+    \path[->] (Sm) edge [bend left] node {$\alpha(t)$} (Sn);
+    \path[->] (Sn) edge [bend left] node {$\omega(t)$} (Sm);
+    \path[->] (Im) edge [bend left] node {$\alpha(t)$} (In);
+    \path[->] (In) edge [bend left] node {$\omega(t)$} (Im);
+    \path[->] (Rm) edge [bend left] node {$\alpha(t)$} (Rn);
+    \path[->] (Rn) edge [bend left] node {$\omega(t)$} (Rm);
+    
+    \path[->] (Sm) edge node {$\lambda(t)$} (Im);
+    \path[->] (Smm) edge node {$\lambda(t)$} (Imm);
+    \path[->] (Sn) edge node {$\lambda(t)$} (In);
+    \path[->] (Snn) edge node {$\lambda(t)$} (Inn);
+    \path[->] (In) edge node {$\gamma$} (Rn);
+    \path[->] (Inn) edge node {$\gamma$} (Rnn);
+    \path[->] (Im) edge node {$\gamma$} (Rm);
+    \path[->] (Imm) edge node {$\gamma$} (Rmm);
+    \path[->] (Rn) edge node {$\nu$} ($(Rn.east)+(1,0)$);
+    \path[->] (Rnn) edge node {$\nu$} ($(Rnn.east)+(1,0)$);
+    \path[->] (Rm) edge node {$\nu$} ($(Rm.east)+(1,0)$);
+    \path[->] (Rmm) edge node {$\nu$} ($(Rmm.east)+(1,0)$);
+    \path[->] ($(Sn.west)+(-1,0)$) edge node {$\nu$} (Sn);
+    \path[->] ($(Snn.west)+(-1,0)$) edge node {$\nu$} (Snn);
+    \path[->] ($(Sm.west)+(-1,0)$) edge node {$\nu$} (Sm);
+    \path[->] ($(Smm.west)+(-1,0)$) edge node {$\nu$} (Smm);
+
+\end{tikzpicture}
+\end{center}
+
+where:
+
+- $\lambda(t), \gamma$, and $\nu$ are as above for the $SIRS$ model;
+- $\omega(t)$ is the rate someone in strata $N$ *takes up* the behaviour $B$;
+- $\alpha(t)$ is the rate someone in strata $B$ *gives up* the behaviour $B$;
+- To simplify the model, we have assumed $\omega(t)$ and $\alpha(t)$ are the same across disease states $S, I, R$, and;
+- $1=P = \sum_{X \in \{S,I,R\}} (X_{N} + X_{NN} + X_{B} + X_{BB})$.
+
+Notice how the radical groups $X_{NN}$ and $X_{BB}$ are "immune" to the behavioural changes $\omega(t)$ and $\alpha(t)$.  However, this model does preclude the idea that an individual can become radicalised to a behaviour, or a radical may become less radical.
+
+Assuming homogeneous mixing of the population, we propose the frequency dependent (noting everything is in proportions) force of infection give by
+
+\[
+  \lambda(t) = \beta\left( (I_N + I_{NN}) + (1-p)(I_B + I_{BB}) \right)\, ,
+\]
+
+where 
+
+- $\beta$ contains information on the average contact rate and probability of infection, and;
+- $p\times 100\%$ is the decrease in infectiousness due to the behaviour $B$.  In other words, $p$ describes how effective the behaviour $B$ is at reducing the infectiousness of an individual.
+
+Assuming there is a parameter $c$ that describes how effective the behaviour $B$ is at reducing an individuals *susceptibility*, we may write the following set of differential equations to describe our model:
+
+- $NN$
+\[
+  \begin{cases}
+    \dot{S}_{NN} &= -\lambda(t)  S_{NN} + \nu R_{NN}\\ 
+    \dot{I}_{NN} &= \lambda(t)  S_{NN} -\gamma I_{NN}\\ 
+    \dot{R}_{NN} &= \gamma I_{NN} -  \nu R_{NN}
+  \end{cases}
+\]
+- $N$
+\[
+  \begin{cases}
+    \dot{S}_{N} & =  -\lambda(t) S_{N} + \alpha(t) S_{B} - \omega(t) S_{N} + \nu R_N\\
+    \dot{I}_{N} & = \lambda(t) S_{N} + \alpha(t) I_{B} - \omega(t) I_{N} - \gamma I_{N}\\
+    \dot{R}_N & = \gamma I_{N} + \alpha(t) R_{B} - \omega(t) R_{N} - \nu R_N \, ,
+  \end{cases}
+\]
+- $B$
+\[
+  \begin{cases}
+    \dot{S}_{B} & =  -\lambda(t) (1-c) S_{B} - \alpha(t) S_{B} + \omega(t) S_{N} + \nu R_B\\
+    \dot{I}_{B} & = \lambda(t) (1-c) S_{B} - \alpha(t) I_{B} + \omega(t) I_{N} - \gamma I_{B}\\
+    \dot{R}_B & = \gamma I_{B}  - \alpha(t) R_{B} + \omega(t) R_{N} - \nu R_B\, \\
+  \end{cases}
+\]
+- $BB$
+\[
+  \begin{cases}
+    \dot{S}_{BB} &= -\lambda(t) (1-c) S_{BB} + \nu R_{BB}\\ 
+    \dot{I}_{BB} &= \lambda(t) (1-c) S_{BB} -\gamma I_{BB}\\ 
+    \dot{R}_{BB} &= \gamma I_{BB} -  \nu R_{BB}
+  \end{cases}
+\]
+
+where the dot represents the derivative with respect to time.  When we wish to discuss the *behavioural states* (red/green rectangles in state diagram) of the model, we will commonly write
+
+- $N = S_{N} + S_{NN} + I_{N} + I_{NN} + R_{N} + R_{NN}$, and;
+- $B = S_{B} + S_{BB} + I_{B} + I_{BB} + R_{B} + R_{BB}$.
+
+Note then that $N + B = 1$ and we find that
+
+- $\dot{N} = -\omega(t) (S_{N} + I_N + R_N) + \alpha(t) (S_B + I_B + R_B)$, and;
+- $\dot{B} = \omega(t) (S_{N} + I_N + R_N) - \alpha(t) (S_B + I_B + R_B)$.
+
+This demonstrates that we have an $SIS$-like structure on our behaviour in the sense that "susceptible" individuals ($N$) can become "infected" with the behaviour ($B$) and eventually "recover" back to "susceptible".
+
+### Using behavioural models to describe $\omega$ and $\alpha$
+
+To determine the uptake ($\omega$) and the upkeep ($\alpha$) of the behaviour $B$, we propose using the health belief model (Figure 2).  The health belief model is a popular behavioural science model that aims to explain why an individual chooses to follow a behaviour that can be directly beneficial for their health (such as wearing a mask or getting vaccinated).  The health belief model is made up of six inputs, so it is reasonable to write
+
+\[
+  \omega(t) = w_1(t) + w_2(t) + w_3(t) + w_4(t) + w_5(t) + w_6(t)\, ,
+\]
+where
+
+- $w_1(t)$ represents the influence of perceived susceptibility to the disease on performing the behaviour
+- $w_2(t)$ represents the influence of perceived severity of the disease on performing the behaviour
+- $w_3(t)$ represents the influence of perceived benefits of the behaviour on performing the behaviour
+- $w_4(t)$ represents the influence of perceived barriers to the behaviour on performing the behaviour
+- $w_5(t)$ represents the influence of cues to action on performing the behaviour
+- $w_6(t)$ represents the influence of self efficacy on performing the behaviour
+
+The functional forms of $w_i(t)$, $i = 1, 2, \dots, 6$, can be highly complex and depend both on the behaviour and the specific pathogen.  For example, if the behaviour is getting a vaccine, we may expect $w_4(t)$ to be (negatively) large due to general fear and possible side effects of the vaccine.  However, if the pathogen has a high mortality rate we may expect the effect of $w_2(t)$ to be (positively) large.  As a general rule to avoid parameter blow out, we suggest to parameterise each $w_i$ around the disease states ($S, I, R$), the behaviour states ($N, B$), the model parameters ($\beta, \gamma, \nu, p, c$), and time ($t$).
+
+In a similar manner, we may write
+
+\[
+  \alpha(t) = a_1(t) + a_2(t) + a_3(t) + a_4(t) + a_5(t) + a_6(t)\, ,
+\]
+
+where each $a_i$ now describes the influence of the components of the HBM in *maintaining* the health behaviour $B$.  For example, $a_1(t)$ describes the influence of the perceived susceptibility of the disease on an individuals ability to continue performing a behaviour.  Once again these are very behaviour and disease dependant.  Taking the example of vaccination as the behaviour, we note this is not a behaviour that someone can simply "stop doing". In such a situation, many components of $\alpha(t)$ would be identically zero.
+
+### Behavioural model for mask wearing
+
+Suppose our behaviour $B$ is the act of wearing a mask.  We consider the following parameterisation for uptake of mask wearing ($\omega(t)$):
+
+1. $w_1(t) \propto I(t) = I_{N}(t) + I_{NN}(t) + I_{B}(t) + I_{BB}(t)$.  This assumes that each individual in the $N$ population is instantaneously aware of the exact prevalence of the disease at time $t$.
+2. $w_2(t) \propto \sigma I(t)$, where $\sigma$ is the (assumed constant) proportion of infected people who get sever cases of the disease (hospitalisation or death).  Assuming a mild pathogen, we take $w_2(t) \approx 0$.
+3. $w_3(t) = f(p, c)$, where $f$ is a function describing the public perception of mask efficacy for both susceptible and infected individuals.  Assuming (on average) little knowledge of the efficacy of masks for each individual, we take $f(p, c) =$ constant.
+4. $w_4(t) \approx 0$.  We assume everyone has access to affordable mask options.
+5. $w_5(t) \propto B +$constant.  We consider the cues to action of wearing a mask to be described by the amount of people you see around you wearing a mask, as well as a constant source due to government advertising and signage.
+6. $w_6(t) \approx$ constant.  We take self efficacy to be (on average) constant across the population as wearing a mask is a relatively low-effort behaviour.
+
+Combining these assumptions, we write
+
+\[
+  \omega(t) = \omega_1 B(t) + \omega_2 I(t) + \omega_3
+\]
+
+where $\omega_1, \omega_2, \omega_3$ are all positive constants.
+
+In a similar manner we can build up the functional form for *dropping* the behaviour of mask wearing.  We suggest
+
+1. $a_1(t) \propto 1 - I(t)$.  This assumes someone doing the behaviour assess their susceptibility by how many people in the population are *not* infected.  This should capture the idea that many people seems to ignore that the behaviour is directly related to the reduction of infected peoples in the community.  Note that since $1-I \gg I$ (in general), the constant of proportionality should be appropriately small to avoid a "flooding effect".
+2. $a_2(t) \propto \sigma I(t)$.  However, as before we assume a mild pathogen such that $a_2(t) \approx 0$.
+3. $a_3(t) = g(p, c)$, where $g$ is a function describing the public perception of mask efficacy for both susceptible and infected individuals.  Assuming (on average) little knowledge of the efficacy of masks for each individual, we take $g(p, c) =$ constant.
+4. $a_4(t) \approx 0$.  We assume there are little to no barriers for continued mask wearing.
+5. $a_5(t) \propto N +$constant.  We need to consider the cues to action for an individual to **stop** wearing a mask.  We take this to be social cues of other individuals not wearing masks ($N$) as well as an "exhaustion" effect, which is an internal cue to action we capture through a constant.
+6. $a_6(t)\approx$ constant. We take the self efficacy of maintaining the behaviour of mask wearing as constant.
+
+As with $\omega(t)$, we may write
+
+\[
+  \alpha(t) = \alpha_1 N(t) + \alpha_2 (1 - I(t)) + \alpha_3\, ,
+\]
+
+where $\alpha_1, \alpha_2, \alpha_3$ are all positive constants.
+
+#### Notes
+
+1. Assume that radicals are negligible for mask wearing, such that $BB \approx NN \approx 0$.  This simplifies the model.
+2. Look over short time span (more reasonable for masks?) so take $\nu = 0$.
+3. Calculate R-effective using NGM
+4. Calculate equilibrium of behaviour
+5. If possible, final size of disease (is the behaviour useful?)
+    a. Very likely no analytic or semi analytic form
+
+### Behavioural model for vaccination
+
+Suppose the behaviour $B$ is the behaviour of getting vaccinated.  We build the functional form $\omega(t)$ as follows:
+
+1. $w_1(t) \propto I(t)$.  This assumes that each individual in the $N$ population is instantaneously aware of the exact prevalence of the disease at time $t$.
+2. $w_2(t) \propto \sigma I(t)$, where $\sigma$ is the (assumed constant) proportion of infected people who get sever cases of the disease (hospitalisation or death).  Assuming a moderately high mortality rate, we consider $w_2(t) \neq 0$.
+3. $w_3(t) = f(p, c) + \sigma_N (I_N(t) + I_{NN}(t)) / \sigma_BI_B(t)$, where $f$ is a function describing the public perception of vaccination efficacy for both susceptible and infected individuals and $\sigma_N$ and $\sigma_B$ describe the mortality rates of non-vaccinated and vaccinated peoples respectively.  Assuming (on average) little knowledge of the true efficacy of vaccination for each individual, we take $f(p, c) =$ constant.
+4. $w_4(t) \propto NN +$ constant.  This assumes the vocal "anti-vax" group may affect the uptake of a vaccination program, and the constant represents individual hesitancy and fear of possible side-effects of the vaccine.
+5. $w_5(t) \propto \sigma_N (I_N(t) + I_{NN}(t)) +$constant.  We consider the cues to action of wearing a mask to be described by the amount of unvaccinated people getting sever illness, as well as a constant source due to government advertising and signage.  Note that vaccination is not a visible behaviour, so the proportion of people vaccinated will not affect the number of people to take up vaccination.
+6. $w_6(t) \approx$ constant.  We take self efficacy to be (on average) constant across the population.
+
+This creates the functional form
+
+\[
+  \omega(t) = \omega_1(1 + \sigma) I(t) + \omega_2\sigma_N (I_{N}(t) + I_{NN}(t))(1 + 1/(\sigma_B I_B(t) + \varepsilon)) - \omega_3NN(t) + \omega_4.
+\]
+
+Note that we have included the $\varepsilon \ll 1$ term to prevent dividing by zero.  Note that although $\omega_1, \omega_2, \omega_3, \omega_4$ are all positive constants, they are constrained such that $\omega(t) \geq 0$ for all time $t$.  ***As a note, we could extend this such that if $\omega(t) < 0$ people transition from $N$ to $NN$.***
+
+Now consider the "dropping of behaviour" $\alpha(t)$.  Vaccination is not a behaviour that can be stopped as once you are vaccinated there is no going back.  We could consider a two-step behaviour that captures "partial vaccination" and "full vaccination," but for simplicity we will assume one vaccination does is enough for full coverage.  However, although we take $a_1(t) = a_2(t) = a_3(t) = a_4(t) = a_5(t)$, we do consider $a_6(t) = \alpha$, a positive constant.  We take the "self efficacy of maintaining vaccination status" to be described by the longevity of the vaccine coverage.  As such, 
+$$
+\alpha(t) = \alpha
+$$
+and we can interpret $1/\alpha$ as the average time that an individual remains effectively vaccinated before returning to "unvaccinated" status.
+
+
+
+#### Notes
+
+1. Assume that radicals are negligible for getting vaxxed, but vocal for not getting vaxxed.  i.e. take $BB \approx 0$ and $NN >0$.
+2. Look over long time span (so we can consider vaccine wear off) so take $\nu > 0$.
+3. Calculate R-effective using NGM?
+4. Calculate equilibrium of behaviour?
+5. If possible, steady state of disease (is the behaviour useful?)
+    a. Very likely no analytic or semi analytic form    
