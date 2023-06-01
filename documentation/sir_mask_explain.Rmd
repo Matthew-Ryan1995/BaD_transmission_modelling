@@ -695,3 +695,41 @@ and we can interpret $1/\alpha$ as the average time that an individual remains e
 4. Calculate equilibrium of behaviour?
 5. If possible, steady state of disease (is the behaviour useful?)
     a. Very likely no analytic or semi analytic form    
+    
+## The "behavioural R0"
+
+I want to think about how "infectious" our behaviour is in the mask setting.  Consider the behavioural transition equation:
+
+\[
+  \dot{B} = (\omega_1 B + \omega_2 I + \omega_3) N - (\alpha_1N + \alpha_2(1 - I) + \alpha_3) B\, .
+\]
+
+In the "disease and behaviour free equilibrium" we have that $N= 1$ and $1-I = 1$, so for small $t$ (and small $I$ and $B$) we get the linearised version
+
+\[
+  \dot{B} = \omega_1 B + \omega_2 I + \omega_3 - (\alpha_1 + \alpha_2 + \alpha_3) B\, .
+\]
+
+I have tried to do a few different things here, but keep getting stuck.  I have tried:
+
+1. Calculating the NGM in the usual way
+2. Calculating the "NGM with large domain" circa Roberts2010 (https://royalsocietypublishing.org/doi/full/10.1098/rsif.2009.0386)
+3. Straight up reasoning it out.
+
+If $\omega_3 = 0$, I want to say the following.  We have that
+
+<!-- \[ -->
+<!--   \begin{aligned} -->
+<!--     R_0^B & = \frac{\omega_1 + \omega_2}{\alpha_1 + \alpha_2 + \alpha_3} \\    -->
+<!--       & = \frac{\omega_1}{\alpha_1 + \alpha_2 + \alpha_3} + \frac{\omega_2}{\alpha_1 + \alpha_2 + \alpha_3} \\ -->
+<!--       & = R_0^{B\rightarrow B} + R_0^{I\rightarrow B}\, . -->
+<!--   \end{aligned} -->
+<!-- \] -->
+\[
+  \begin{aligned}
+    R_0^B & = \frac{\omega_1}{\alpha_1 + \alpha_2 + \alpha_3} + \frac{\omega_2}{\gamma} \\
+      & = R_0^{B\rightarrow B} + R_0^{I\rightarrow B}\, .
+  \end{aligned}
+\]
+
+This seems to hold, but I can't derive this nicely.  I also cannot reconcile $\omega_3$ into any arguments for $R_0^B$.  I also feel like the disease parameters $\gamma$ and $\beta$ should play into this.

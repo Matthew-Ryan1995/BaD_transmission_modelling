@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['code/msir_4.py', 'data/parameter_ranges.json', '../../05_coding/02_messing_around/01_SIR/sir_final_size.py', '../../05_coding/02_messing_around/DE_MC.py', '../../05_coding/02_messing_around/patch_fs.py', '../../05_coding/02_messing_around/sir_equil.py', '../../05_coding/02_messing_around/patch_equil.py']
+recent_files = ['code/msir_4.py', 'code/09_epitime_explore_1.py', 'code/10_FS_explore_subs.py']
 
 [main]
 version = 0.2.0

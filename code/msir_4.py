@@ -240,10 +240,24 @@ if __name__ == "__main__":
     w1 = 8
     R0 = 5
     # Enter custom params
+    # cust_params = dict()
+    # cust_params["transmission"] = R0*0.1
+    # cust_params["infectious_period"] = 1/0.1
+    # # cust_params["immune_period"] = 240
+    # cust_params["av_lifespan"] = 0
+    # cust_params["susc_mask_efficacy"] = 0.4
+    # cust_params["inf_mask_efficacy"] = 0.8
+    # cust_params["nomask_social"] = 0.
+    # cust_params["nomask_fear"] = 0.0
+    # cust_params["mask_social"] = w1  # 0.0 * w1
+    # cust_params["mask_fear"] = 0  # w1
+    # cust_params["mask_const"] = 0.
+    # cust_params["nomask_const"] = 0.01
+    # model = msir(**cust_params)
     cust_params = dict()
     cust_params["transmission"] = R0*0.4
     cust_params["infectious_period"] = 1/0.4
-    cust_params["immune_period"] = 240
+    # cust_params["immune_period"] = 240
     cust_params["av_lifespan"] = 0
     cust_params["susc_mask_efficacy"] = 0.8
     cust_params["inf_mask_efficacy"] = 0.8
@@ -254,6 +268,10 @@ if __name__ == "__main__":
     cust_params["mask_const"] = 0.01
     cust_params["nomask_const"] = 0.01
     model = msir(**cust_params)
+
+    R0_b = (model.mask_social) / \
+        (model.nomask_fear + model.nomask_const +
+         model.nomask_social) + model.mask_fear/(1/model.infectious_period)
 
     # S0_m = 1-Delta
     # I0_m = 0
@@ -478,38 +496,38 @@ if __name__ == "__main__":
 
 # est_fs = fsolve(FS_eqn, np.array([0.5, 0.5]))
 
-# %%
+# # %%
 
-beta = cust_params["transmission"]
-p = cust_params["inf_mask_efficacy"]
-c = cust_params["susc_mask_efficacy"]
-nu = 1/cust_params["immune_period"]
-gamma = 1/cust_params["infectious_period"]
+# beta = cust_params["transmission"]
+# p = cust_params["inf_mask_efficacy"]
+# c = cust_params["susc_mask_efficacy"]
+# nu = 1/cust_params["immune_period"]
+# gamma = 1/cust_params["infectious_period"]
 
-i1 = dat[-1, 3]
-D = dat[-1, 1:6:2].sum()
-B = np.array([[beta, (1-p) * beta], [(1-p) * beta, (1-c) * (1-p) * beta]])
+# i1 = dat[-1, 3]
+# D = dat[-1, 1:6:2].sum()
+# B = np.array([[beta, (1-p) * beta], [(1-p) * beta, (1-c) * (1-p) * beta]])
 
 
-i2 = (nu * gamma - B[0, 0] * (nu * D - (nu + gamma) * i1)
-      ) * i1 / (B[0, 1] * (nu * D - (nu + gamma) * i1))
+# i2 = (nu * gamma - B[0, 0] * (nu * D - (nu + gamma) * i1)
+#       ) * i1 / (B[0, 1] * (nu * D - (nu + gamma) * i1))
 
-s1 = nu * (D - i1) / (B[0, 0] * i1 + B[0, 1] * i2 + nu)
-r1 = D - s1 - i1
+# s1 = nu * (D - i1) / (B[0, 0] * i1 + B[0, 1] * i2 + nu)
+# r1 = D - s1 - i1
 
-s2 = nu * (1 - D - i2)/(B[1, 0] * i1 + B[1, 1] * i2 + nu)
-r2 = 1 - D - s2 - i2
+# s2 = nu * (1 - D - i2)/(B[1, 0] * i1 + B[1, 1] * i2 + nu)
+# r2 = 1 - D - s2 - i2
 
-print(dat[-1, 0:6])
-print([s2, s1, i2, i1, r2, r1])
-print(np.array([s1, s2, i1, i2, r1, r2]).sum())
+# print(dat[-1, 0:6])
+# print([s2, s1, i2, i1, r2, r1])
+# print(np.array([s1, s2, i1, i2, r1, r2]).sum())
 
-# %%
+# # %%
 
-a = model.rate_to_mask(1-D, dat[-1, 2:4].sum())
-w = model.rate_to_no_mask(D, 1 - dat[-1, 2:4].sum())
+# a = model.rate_to_mask(1-D, dat[-1, 2:4].sum())
+# w = model.rate_to_no_mask(D, 1 - dat[-1, 2:4].sum())
 
-print(a * D - w * (1-D))
-print(a * dat[-1, 1] - w * dat[-1, 0])
-print(a * dat[-1, 3] - w * dat[-1, 2])
-print(a * dat[-1, 5] - w * dat[-1, 4])
+# print(a * D - w * (1-D))
+# print(a * dat[-1, 1] - w * dat[-1, 0])
+# print(a * dat[-1, 3] - w * dat[-1, 2])
+# print(a * dat[-1, 5] - w * dat[-1, 4])
