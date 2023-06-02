@@ -594,37 +594,37 @@ This demonstrates that we have an $SIS$-like structure on our behaviour in the s
 To determine the uptake ($\omega$) and the upkeep ($\alpha$) of the behaviour $B$, we propose using the health belief model (Figure 2).  The health belief model is a popular behavioural science model that aims to explain why an individual chooses to follow a behaviour that can be directly beneficial for their health (such as wearing a mask or getting vaccinated).  The health belief model is made up of six inputs, so it is reasonable to write
 
 \[
-  \omega(t) = w_1(t) + w_2(t) + w_3(t) + w_4(t) + w_5(t) + w_6(t)\, ,
+  \omega(t) = f_1(t) + f_2(t) + f_3(t) + f_4(t) + f_5(t) + f_6(t)\, ,
 \]
 where
 
-- $w_1(t)$ represents the influence of perceived susceptibility to the disease on performing the behaviour
-- $w_2(t)$ represents the influence of perceived severity of the disease on performing the behaviour
-- $w_3(t)$ represents the influence of perceived benefits of the behaviour on performing the behaviour
-- $w_4(t)$ represents the influence of perceived barriers to the behaviour on performing the behaviour
-- $w_5(t)$ represents the influence of cues to action on performing the behaviour
-- $w_6(t)$ represents the influence of self efficacy on performing the behaviour
+- $f_1(t)$ represents the influence of perceived susceptibility to the disease on performing the behaviour
+- $f_2(t)$ represents the influence of perceived severity of the disease on performing the behaviour
+- $f_3(t)$ represents the influence of perceived benefits of the behaviour on performing the behaviour
+- $f_4(t)$ represents the influence of perceived barriers to the behaviour on performing the behaviour
+- $f_5(t)$ represents the influence of cues to action on performing the behaviour
+- $f_6(t)$ represents the influence of self efficacy on performing the behaviour
 
-The functional forms of $w_i(t)$, $i = 1, 2, \dots, 6$, can be highly complex and depend both on the behaviour and the specific pathogen.  For example, if the behaviour is getting a vaccine, we may expect $w_4(t)$ to be (negatively) large due to general fear and possible side effects of the vaccine.  However, if the pathogen has a high mortality rate we may expect the effect of $w_2(t)$ to be (positively) large.  As a general rule to avoid parameter blow out, we suggest to parameterise each $w_i$ around the disease states ($S, I, R$), the behaviour states ($N, B$), the model parameters ($\beta, \gamma, \nu, p, c$), and time ($t$).
+The functional forms of $f_i(t)$, $i = 1, 2, \dots, 6$, can be highly complex and depend both on the behaviour and the specific pathogen.  For example, if the behaviour is getting a vaccine, we may expect $f_4(t)$ to be (negatively) large due to general fear and possible side effects of the vaccine.  However, if the pathogen has a high mortality rate we may expect the effect of $f_2(t)$ to be (positively) large.  As a general rule to avoid parameter blow out, we suggest to parameterise each $f_i$ around the disease states ($S, I, R$), the behaviour states ($N, B$), the model parameters ($\beta, \gamma, \nu, p, c$), and time ($t$).
 
 In a similar manner, we may write
 
 \[
-  \alpha(t) = a_1(t) + a_2(t) + a_3(t) + a_4(t) + a_5(t) + a_6(t)\, ,
+  \alpha(t) = g_1(t) + g_2(t) + g_3(t) + g_4(t) + g_5(t) + g_6(t)\, ,
 \]
 
-where each $a_i$ now describes the influence of the components of the HBM in *maintaining* the health behaviour $B$.  For example, $a_1(t)$ describes the influence of the perceived susceptibility of the disease on an individuals ability to continue performing a behaviour.  Once again these are very behaviour and disease dependant.  Taking the example of vaccination as the behaviour, we note this is not a behaviour that someone can simply "stop doing". In such a situation, many components of $\alpha(t)$ would be identically zero.
+where each $g_i$ now describes the influence of the components of the HBM in *maintaining* the health behaviour $B$.  For example, $g_1(t)$ describes the influence of the perceived susceptibility of the disease on an individuals ability to continue performing a behaviour.  Once again these are very behaviour and disease dependant.  Taking the example of vaccination as the behaviour, we note this is not a behaviour that someone can simply "stop doing". In such a situation, many components of $\alpha(t)$ would be identically zero.
 
 ### Behavioural model for mask wearing
 
 Suppose our behaviour $B$ is the act of wearing a mask.  We consider the following parameterisation for uptake of mask wearing ($\omega(t)$):
 
-1. $w_1(t) \propto I(t) = I_{N}(t) + I_{NN}(t) + I_{B}(t) + I_{BB}(t)$.  This assumes that each individual in the $N$ population is instantaneously aware of the exact prevalence of the disease at time $t$.
-2. $w_2(t) \propto \sigma I(t)$, where $\sigma$ is the (assumed constant) proportion of infected people who get sever cases of the disease (hospitalisation or death).  Assuming a mild pathogen, we take $w_2(t) \approx 0$.
-3. $w_3(t) = f(p, c)$, where $f$ is a function describing the public perception of mask efficacy for both susceptible and infected individuals.  Assuming (on average) little knowledge of the efficacy of masks for each individual, we take $f(p, c) =$ constant.
-4. $w_4(t) \approx 0$.  We assume everyone has access to affordable mask options.
-5. $w_5(t) \propto B +$constant.  We consider the cues to action of wearing a mask to be described by the amount of people you see around you wearing a mask, as well as a constant source due to government advertising and signage.
-6. $w_6(t) \approx$ constant.  We take self efficacy to be (on average) constant across the population as wearing a mask is a relatively low-effort behaviour.
+1. $f_1(t) \propto I(t) = I_{N}(t) + I_{NN}(t) + I_{B}(t) + I_{BB}(t)$.  This assumes that each individual in the $N$ population is instantaneously aware of the exact prevalence of the disease at time $t$.
+2. $f_2(t) \propto \sigma I(t)$, where $\sigma$ is the (assumed constant) proportion of infected people who get sever cases of the disease (hospitalisation or death).  Assuming a mild pathogen, we take $f_2(t) \approx 0$.
+3. $f_3(t) = b_{\omega}(p, c)$, where $f$ is a function describing the public perception of mask efficacy for both susceptible and infected individuals.  Assuming (on average) little knowledge of the efficacy of masks for each individual, we take $b_{\omega}(p, c) =$ constant.
+4. $f_4(t) \approx 0$.  We assume everyone has access to affordable mask options.
+5. $f_5(t) \propto B +$constant.  We consider the cues to action of wearing a mask to be described by the amount of people you see around you wearing a mask, as well as a constant source due to government advertising and signage.
+6. $f_6(t) \approx$ constant.  We take self efficacy to be (on average) constant across the population as wearing a mask is a relatively low-effort behaviour.
 
 Combining these assumptions, we write
 
@@ -636,12 +636,12 @@ where $\omega_1, \omega_2, \omega_3$ are all positive constants.
 
 In a similar manner we can build up the functional form for *dropping* the behaviour of mask wearing.  We suggest
 
-1. $a_1(t) \propto 1 - I(t)$.  This assumes someone doing the behaviour assess their susceptibility by how many people in the population are *not* infected.  This should capture the idea that many people seems to ignore that the behaviour is directly related to the reduction of infected peoples in the community.  Note that since $1-I \gg I$ (in general), the constant of proportionality should be appropriately small to avoid a "flooding effect".
-2. $a_2(t) \propto \sigma I(t)$.  However, as before we assume a mild pathogen such that $a_2(t) \approx 0$.
-3. $a_3(t) = g(p, c)$, where $g$ is a function describing the public perception of mask efficacy for both susceptible and infected individuals.  Assuming (on average) little knowledge of the efficacy of masks for each individual, we take $g(p, c) =$ constant.
-4. $a_4(t) \approx 0$.  We assume there are little to no barriers for continued mask wearing.
-5. $a_5(t) \propto N +$constant.  We need to consider the cues to action for an individual to **stop** wearing a mask.  We take this to be social cues of other individuals not wearing masks ($N$) as well as an "exhaustion" effect, which is an internal cue to action we capture through a constant.
-6. $a_6(t)\approx$ constant. We take the self efficacy of maintaining the behaviour of mask wearing as constant.
+1. $g_1(t) \propto 1 - I(t)$.  This assumes someone doing the behaviour assess their susceptibility by how many people in the population are *not* infected.  This should capture the idea that many people seems to ignore that the behaviour is directly related to the reduction of infected peoples in the community.  Note that since $1-I \gg I$ (in general), the constant of proportionality should be appropriately small to avoid a "flooding effect".
+2. $g_2(t) \propto \sigma I(t)$.  However, as before we assume a mild pathogen such that $g_2(t) \approx 0$.
+3. $g_3(t) = b_{\alpha}(p, c)$, where $g$ is a function describing the public perception of mask efficacy for both susceptible and infected individuals.  Assuming (on average) little knowledge of the efficacy of masks for each individual, we take $b_{\alpha}(p, c) =$ constant.
+4. $g_4(t) \approx 0$.  We assume there are little to no barriers for continued mask wearing.
+5. $g_5(t) \propto N +$constant.  We need to consider the cues to action for an individual to **stop** wearing a mask.  We take this to be social cues of other individuals not wearing masks ($N$) as well as an "exhaustion" effect, which is an internal cue to action we capture through a constant.
+6. $g_6(t)\approx$ constant. We take the self efficacy of maintaining the behaviour of mask wearing as constant.
 
 As with $\omega(t)$, we may write
 
@@ -664,12 +664,12 @@ where $\alpha_1, \alpha_2, \alpha_3$ are all positive constants.
 
 Suppose the behaviour $B$ is the behaviour of getting vaccinated.  We build the functional form $\omega(t)$ as follows:
 
-1. $w_1(t) \propto I(t)$.  This assumes that each individual in the $N$ population is instantaneously aware of the exact prevalence of the disease at time $t$.
-2. $w_2(t) \propto \sigma I(t)$, where $\sigma$ is the (assumed constant) proportion of infected people who get sever cases of the disease (hospitalisation or death).  Assuming a moderately high mortality rate, we consider $w_2(t) \neq 0$.
-3. $w_3(t) = f(p, c) + \sigma_N (I_N(t) + I_{NN}(t)) / \sigma_BI_B(t)$, where $f$ is a function describing the public perception of vaccination efficacy for both susceptible and infected individuals and $\sigma_N$ and $\sigma_B$ describe the mortality rates of non-vaccinated and vaccinated peoples respectively.  Assuming (on average) little knowledge of the true efficacy of vaccination for each individual, we take $f(p, c) =$ constant.
-4. $w_4(t) \propto NN +$ constant.  This assumes the vocal "anti-vax" group may affect the uptake of a vaccination program, and the constant represents individual hesitancy and fear of possible side-effects of the vaccine.
-5. $w_5(t) \propto \sigma_N (I_N(t) + I_{NN}(t)) +$constant.  We consider the cues to action of wearing a mask to be described by the amount of unvaccinated people getting sever illness, as well as a constant source due to government advertising and signage.  Note that vaccination is not a visible behaviour, so the proportion of people vaccinated will not affect the number of people to take up vaccination.
-6. $w_6(t) \approx$ constant.  We take self efficacy to be (on average) constant across the population.
+1. $f_1(t) \propto I(t)$.  This assumes that each individual in the $N$ population is instantaneously aware of the exact prevalence of the disease at time $t$.
+2. $f_2(t) \propto \sigma I(t)$, where $\sigma$ is the (assumed constant) proportion of infected people who get sever cases of the disease (hospitalisation or death).  Assuming a moderately high mortality rate, we consider $f_2(t) \neq 0$.
+3. $f_3(t) = b_{\omega}(p, c) + \sigma_N (I_N(t) + I_{NN}(t)) / \sigma_BI_B(t)$, where $f$ is a function describing the public perception of vaccination efficacy for both susceptible and infected individuals and $\sigma_N$ and $\sigma_B$ describe the mortality rates of non-vaccinated and vaccinated peoples respectively.  Assuming (on average) little knowledge of the true efficacy of vaccination for each individual, we take $b_{\omega}(p, c) =$ constant.
+4. $f_4(t) \propto NN +$ constant.  This assumes the vocal "anti-vax" group may affect the uptake of a vaccination program, and the constant represents individual hesitancy and fear of possible side-effects of the vaccine.
+5. $f_5(t) \propto \sigma_N (I_N(t) + I_{NN}(t)) +$constant.  We consider the cues to action of wearing a mask to be described by the amount of unvaccinated people getting sever illness, as well as a constant source due to government advertising and signage.  Note that vaccination is not a visible behaviour, so the proportion of people vaccinated will not affect the number of people to take up vaccination.
+6. $f_6(t) \approx$ constant.  We take self efficacy to be (on average) constant across the population.
 
 This creates the functional form
 
@@ -679,7 +679,7 @@ This creates the functional form
 
 Note that we have included the $\varepsilon \ll 1$ term to prevent dividing by zero.  Note that although $\omega_1, \omega_2, \omega_3, \omega_4$ are all positive constants, they are constrained such that $\omega(t) \geq 0$ for all time $t$.  ***As a note, we could extend this such that if $\omega(t) < 0$ people transition from $N$ to $NN$.***
 
-Now consider the "dropping of behaviour" $\alpha(t)$.  Vaccination is not a behaviour that can be stopped as once you are vaccinated there is no going back.  We could consider a two-step behaviour that captures "partial vaccination" and "full vaccination," but for simplicity we will assume one vaccination does is enough for full coverage.  However, although we take $a_1(t) = a_2(t) = a_3(t) = a_4(t) = a_5(t)$, we do consider $a_6(t) = \alpha$, a positive constant.  We take the "self efficacy of maintaining vaccination status" to be described by the longevity of the vaccine coverage.  As such, 
+Now consider the "dropping of behaviour" $\alpha(t)$.  Vaccination is not a behaviour that can be stopped as once you are vaccinated there is no going back.  We could consider a two-step behaviour that captures "partial vaccination" and "full vaccination," but for simplicity we will assume one vaccination does is enough for full coverage.  However, although we take $g_1(t) = g_2(t) = g_3(t) = g_4(t) = g_5(t)$, we do consider $g_6(t) = \alpha$, a positive constant.  We take the "self efficacy of maintaining vaccination status" to be described by the longevity of the vaccine coverage.  As such, 
 $$
 \alpha(t) = \alpha
 $$
@@ -704,32 +704,95 @@ I want to think about how "infectious" our behaviour is in the mask setting.  Co
   \dot{B} = (\omega_1 B + \omega_2 I + \omega_3) N - (\alpha_1N + \alpha_2(1 - I) + \alpha_3) B\, .
 \]
 
-In the "disease and behaviour free equilibrium" we have that $N= 1$ and $1-I = 1$, so for small $t$ (and small $I$ and $B$) we get the linearised version
+Suppose $t$ is such that $I\approx \varepsilon$ where $\varepsilon\ll 1$ is a constant.  Using $N = 1-B$ we may write
 
-\[
-  \dot{B} = \omega_1 B + \omega_2 I + \omega_3 - (\alpha_1 + \alpha_2 + \alpha_3) B\, .
-\]
-
-I have tried to do a few different things here, but keep getting stuck.  I have tried:
-
-1. Calculating the NGM in the usual way
-2. Calculating the "NGM with large domain" circa Roberts2010 (https://royalsocietypublishing.org/doi/full/10.1098/rsif.2009.0386)
-3. Straight up reasoning it out.
-
-If $\omega_3 = 0$, I want to say the following.  We have that
-
-<!-- \[ -->
-<!--   \begin{aligned} -->
-<!--     R_0^B & = \frac{\omega_1 + \omega_2}{\alpha_1 + \alpha_2 + \alpha_3} \\    -->
-<!--       & = \frac{\omega_1}{\alpha_1 + \alpha_2 + \alpha_3} + \frac{\omega_2}{\alpha_1 + \alpha_2 + \alpha_3} \\ -->
-<!--       & = R_0^{B\rightarrow B} + R_0^{I\rightarrow B}\, . -->
-<!--   \end{aligned} -->
-<!-- \] -->
-\[
+$$
   \begin{aligned}
-    R_0^B & = \frac{\omega_1}{\alpha_1 + \alpha_2 + \alpha_3} + \frac{\omega_2}{\gamma} \\
-      & = R_0^{B\rightarrow B} + R_0^{I\rightarrow B}\, .
+    \dot{B} &= (\omega_1 B + \omega_2 \varepsilon + \omega_3) N - (\alpha_1N + \alpha_2(1 - \varepsilon) + \alpha_3) B \\
+      & = (\omega_1 B + \omega_2 \varepsilon + \omega_3) (1-B) - (\alpha_1(1-B) + \alpha_2(1 - \varepsilon) + \alpha_3) B \\
+      & = \omega_1 B + \omega_2 \varepsilon + \omega_3 - \omega_1 B^2 - \omega_2 \varepsilon B - \omega_3B - \alpha_1 B + \alpha_1B^2 - \alpha_2(1 - \varepsilon)B - \alpha_3B \\
+      & = (\omega_2\varepsilon + \omega_3) + (\omega_1 - \omega_2\varepsilon - \omega_3 - \alpha_1 - \alpha_2(1-\varepsilon) - \alpha_3) B + (\alpha_1 - \omega_1) B^2 \\
+      & = a_0 + a_1B + a_2 B^2\, ,
   \end{aligned}
-\]
+$$
 
-This seems to hold, but I can't derive this nicely.  I also cannot reconcile $\omega_3$ into any arguments for $R_0^B$.  I also feel like the disease parameters $\gamma$ and $\beta$ should play into this.
+where 
+
+$$
+  \begin{aligned}
+    a_0 & = \omega_2\varepsilon + \omega_3 \\
+    a_1 & = \omega_1 - \omega_2\varepsilon - \omega_3 - \alpha_1 - \alpha_2(1-\varepsilon) - \alpha_3 \\
+    a_2 & = \alpha_1 - \omega_1\, .
+  \end{aligned}
+$$
+
+From Wolfram Alpha, this has the solution
+
+$$
+  B(t) = \dfrac{\sqrt{4a_0a_2 - a_1^2}\tan\left( \frac{1}{2}(c_1 + t) \sqrt{4a_0a_2 - a_1^2}\right) - a_1}{2a_2}\, ,
+$$
+
+where $c_1$ is a constant determined by the initial condition $B(0) = B_0$.  Noting that $t \geq 0$, this solution is exists under the dual conditions
+
+$$
+  \begin{aligned}
+    a_1^2 &\leq 4a_0a_2\quad \text{ and,}\\
+    t & \leq \frac{\pi}{\sqrt{4a_0a_2 - a_1^2}} - c_1\, .
+  \end{aligned}
+$$
+
+Further, this solution is valid (i.e. $B(t)\geq 0$) whenever
+
+$$
+\begin{aligned}
+  \sqrt{4a_0a_2 - a_1^2}\tan\left( \frac{1}{2}(c_1 + t) \sqrt{4a_0a_2 - a_1^2}\right) &\geq a_1 \quad \text{and,}\\
+  a2 > 0\, ,
+\end{aligned}
+$$
+
+or
+
+$$
+\begin{aligned}
+  \sqrt{4a_0a_2 - a_1^2}\tan\left( \frac{1}{2}(c_1 + t) \sqrt{4a_0a_2 - a_1^2}\right) &\leq a_1 \quad \text{and,}\\
+  a2 < 0\, .
+\end{aligned}
+$$
+
+Considering the first necessary condition for the solution to exist, we find we need
+
+$$
+  4a_0a_2 - a_1^2\geq 0\, .
+$$
+
+Writing 
+
+$$
+  a_1 = -\left( a_2 + a_0 + \alpha_2(1-\varepsilon) + \alpha_3 \right)
+$$
+
+we can reduce this to 
+
+$$
+  -(a_2 - a_0)^2 - 2(a_2 + a_0)(\alpha_2(1-\varepsilon) + \alpha_3) - (\alpha_2(1-\varepsilon) + \alpha_3)^2 \geq 0\, ,
+$$
+
+or
+
+$$
+  (a_2 - a_0)^2 + 2(a_2 + a_0)(\alpha_2(1-\varepsilon) + \alpha_3) + (\alpha_2(1-\varepsilon) + \alpha_3)^2 \leq 0\, .
+$$
+
+Given that $\alpha_i>0$, $\omega_i>0$ and $\varepsilon >0$, this leads to the first condition that 
+
+$$
+  a_2 + a_0 < 0\, ,
+$$
+
+or
+
+$$
+  \omega_1 > \alpha_1 + \omega_2\varepsilon + \omega_3\, .
+$$
+
+**I can probably derive further conditions, but I am really not hopeful for this.**
