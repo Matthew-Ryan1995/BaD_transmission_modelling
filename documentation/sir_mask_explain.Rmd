@@ -623,7 +623,7 @@ Suppose our behaviour $B$ is the act of wearing a mask.  We consider the followi
 2. $f_2(t) \propto \sigma I(t)$, where $\sigma$ is the (assumed constant) proportion of infected people who get sever cases of the disease (hospitalisation or death).  Assuming a mild pathogen, we take $f_2(t) \approx 0$.
 3. $f_3(t) = b_{\omega}(p, c)$, where $f$ is a function describing the public perception of mask efficacy for both susceptible and infected individuals.  Assuming (on average) little knowledge of the efficacy of masks for each individual, we take $b_{\omega}(p, c) =$ constant.
 4. $f_4(t) \approx 0$.  We assume everyone has access to affordable mask options.
-5. $f_5(t) \propto B +$constant.  We consider the cues to action of wearing a mask to be described by the amount of people you see around you wearing a mask, as well as a constant source due to government advertising and signage.
+5. $f_5(t) \propto B +$constant.  We consider the cues to action of wearing a mask to be described by the amount of people you see around you wearing a mask, as well as a constant source due to government advertising and signage and internal cues such as empathy for others.
 6. $f_6(t) \approx$ constant.  We take self efficacy to be (on average) constant across the population as wearing a mask is a relatively low-effort behaviour.
 
 Combining these assumptions, we write
@@ -712,7 +712,7 @@ $$
       & = (\omega_1 B + \omega_2 \varepsilon + \omega_3) (1-B) - (\alpha_1(1-B) + \alpha_2(1 - \varepsilon) + \alpha_3) B \\
       & = \omega_1 B + \omega_2 \varepsilon + \omega_3 - \omega_1 B^2 - \omega_2 \varepsilon B - \omega_3B - \alpha_1 B + \alpha_1B^2 - \alpha_2(1 - \varepsilon)B - \alpha_3B \\
       & = (\omega_2\varepsilon + \omega_3) + (\omega_1 - \omega_2\varepsilon - \omega_3 - \alpha_1 - \alpha_2(1-\varepsilon) - \alpha_3) B + (\alpha_1 - \omega_1) B^2 \\
-      & = a_0 + a_1B + a_2 B^2\, ,
+      & = a_0 + a_1B + a_2 B^2\, ,\qquad(*)
   \end{aligned}
 $$
 
@@ -729,7 +729,7 @@ $$
 From Wolfram Alpha, this has the solution
 
 $$
-  B(t) = \dfrac{\sqrt{4a_0a_2 - a_1^2}\tan\left( \frac{1}{2}(c_1 + t) \sqrt{4a_0a_2 - a_1^2}\right) - a_1}{2a_2}\, ,
+  B(t) = \dfrac{\sqrt{4a_0a_2 - a_1^2}\tan\left( \frac{1}{2}(c_1 + t) \sqrt{4a_0a_2 - a_1^2}\right) - a_1}{2a_2}\, ,\qquad(**)
 $$
 
 where $c_1$ is a constant determined by the initial condition $B(0) = B_0$.  Noting that $t \geq 0$, this solution is exists under the dual conditions
@@ -741,58 +741,241 @@ $$
   \end{aligned}
 $$
 
-Further, this solution is valid (i.e. $B(t)\geq 0$) whenever
+Consider the first condition.  For simplicity, take $\varepsilon \approx 0$ (alternatively, absorb it into appropriate constants).  For this condition to hold, we need
 
 $$
-\begin{aligned}
-  \sqrt{4a_0a_2 - a_1^2}\tan\left( \frac{1}{2}(c_1 + t) \sqrt{4a_0a_2 - a_1^2}\right) &\geq a_1 \quad \text{and,}\\
-  a2 > 0\, ,
-\end{aligned}
+  (\omega_1  - \omega_3 - \alpha_1 - \alpha_2 - \alpha_3)^2 \leq 4(\alpha_1 - \omega_1) \omega_3\, .
 $$
 
-or
+Since every parameter here is positive, if $\omega_1 > \alpha_1$ this condition cannot hold.  So consider $\omega_1 < \alpha_1$ (we ignore equality as this requires all parameters to be $0$).  We may then write
 
 $$
-\begin{aligned}
-  \sqrt{4a_0a_2 - a_1^2}\tan\left( \frac{1}{2}(c_1 + t) \sqrt{4a_0a_2 - a_1^2}\right) &\leq a_1 \quad \text{and,}\\
-  a2 < 0\, .
-\end{aligned}
-$$
-
-Considering the first necessary condition for the solution to exist, we find we need
-
-$$
-  4a_0a_2 - a_1^2\geq 0\, .
-$$
-
-Writing 
-
-$$
-  a_1 = -\left( a_2 + a_0 + \alpha_2(1-\varepsilon) + \alpha_3 \right)
-$$
-
-we can reduce this to 
-
-$$
-  -(a_2 - a_0)^2 - 2(a_2 + a_0)(\alpha_2(1-\varepsilon) + \alpha_3) - (\alpha_2(1-\varepsilon) + \alpha_3)^2 \geq 0\, ,
+  \begin{aligned}
+    (\alpha_1 - \omega_1)^2 + 2(\alpha_1 - \omega_1)(\omega_3 + \alpha_2 + \alpha_3) + (\omega_3 + \alpha_2 + \alpha_3)^2 \leq 4(\alpha_1 - \omega_1) \omega_3\, ,
+  \end{aligned}
 $$
 
 or
 
 $$
-  (a_2 - a_0)^2 + 2(a_2 + a_0)(\alpha_2(1-\varepsilon) + \alpha_3) + (\alpha_2(1-\varepsilon) + \alpha_3)^2 \leq 0\, .
+  \begin{aligned}
+    (\alpha_1 - \omega_1)^2 + 2(\alpha_1 - \omega_1)( \alpha_2 + \alpha_3 - \omega_3) + (\omega_3 + \alpha_2 + \alpha_3)^2 \leq 0 \, .
+  \end{aligned}
 $$
 
-Given that $\alpha_i>0$, $\omega_i>0$ and $\varepsilon >0$, this leads to the first condition that 
+Since this is a convex quadratic in $(\alpha_1 - \omega_1)$, this inequality only holds if the determinant of the quadratic is greater than or equal to $0$, i.e this quadratic needs to have real solutions.  The determinant is
 
 $$
-  a_2 + a_0 < 0\, ,
+  \begin{aligned}
+    4( \alpha_2 + \alpha_3 - \omega_3)^2 - 4(\omega_3 + \alpha_2 + \alpha_3)^2 & = 4(\alpha_2 + \alpha_3 - \omega_3 + \alpha_2 + \alpha_3 + \omega_3)(\alpha_2 + \alpha_3 - \omega_3 - (\alpha_2 + \alpha_3 + \omega_3)) \\
+      & = 4(2(\alpha_2 + \alpha_3))(-2\omega_3)\\
+      & = -16(\alpha_2 + \alpha_3)\omega_3\\
+      & \leq 0
+  \end{aligned}
+$$
+
+for all valid choices of $\alpha_2, \alpha_3, \omega_3$.  This means that 
+
+$$
+  \begin{aligned}
+    (\alpha_1 - \omega_1)^2 + 2(\alpha_1 - \omega_1)( \alpha_2 + \alpha_3 - \omega_3) + (\omega_3 + \alpha_2 + \alpha_3)^2 \geq 0 \, .
+  \end{aligned}
+$$
+
+for all choices of $\alpha_1 - \omega_1$ and $(**)$ is never a valid solution to DE $(*)$.
+
+<!-- Further, this solution is valid (i.e. $B(t)\geq 0$) whenever -->
+
+<!-- $$ -->
+<!-- \begin{aligned} -->
+<!--   \sqrt{4a_0a_2 - a_1^2}\tan\left( \frac{1}{2}(c_1 + t) \sqrt{4a_0a_2 - a_1^2}\right) &\geq a_1 \quad \text{and,}\\ -->
+<!--   a2 > 0\, , -->
+<!-- \end{aligned} -->
+<!-- $$ -->
+
+<!-- or -->
+
+<!-- $$ -->
+<!-- \begin{aligned} -->
+<!--   \sqrt{4a_0a_2 - a_1^2}\tan\left( \frac{1}{2}(c_1 + t) \sqrt{4a_0a_2 - a_1^2}\right) &\leq a_1 \quad \text{and,}\\ -->
+<!--   a2 < 0\, . -->
+<!-- \end{aligned} -->
+<!-- $$ -->
+
+<!-- Considering the first necessary condition for the solution to exist, we find we need -->
+
+<!-- $$ -->
+<!--   4a_0a_2 - a_1^2\geq 0\, . -->
+<!-- $$ -->
+
+<!-- Writing  -->
+
+<!-- $$ -->
+<!--   a_1 = -\left( a_2 + a_0 + \alpha_2(1-\varepsilon) + \alpha_3 \right) -->
+<!-- $$ -->
+
+<!-- we can reduce this to  -->
+
+<!-- $$ -->
+<!--   -(a_2 - a_0)^2 - 2(a_2 + a_0)(\alpha_2(1-\varepsilon) + \alpha_3) - (\alpha_2(1-\varepsilon) + \alpha_3)^2 \geq 0\, , -->
+<!-- $$ -->
+
+<!-- or -->
+
+<!-- $$ -->
+<!--   (a_2 - a_0)^2 + 2(a_2 + a_0)(\alpha_2(1-\varepsilon) + \alpha_3) + (\alpha_2(1-\varepsilon) + \alpha_3)^2 \leq 0\, . -->
+<!-- $$ -->
+
+<!-- Given that $\alpha_i>0$, $\omega_i>0$ and $\varepsilon >0$, this leads to the first condition that  -->
+
+<!-- $$ -->
+<!--   a_2 + a_0 < 0\, , -->
+<!-- $$ -->
+
+<!-- or -->
+
+<!-- $$ -->
+<!--   \omega_1 > \alpha_1 + \omega_2\varepsilon + \omega_3\, . -->
+<!-- $$ -->
+
+<!-- **I can probably derive further conditions, but I am really not hopeful for this.** -->
+
+# Extensions
+
+- Idea sparked by Emily: Consider the health belief model with distributions on the parameters, i.e. self efficacy is given by $b_6 \sim N(\mu_6, \sigma_6^2)$. Use this to capture individuality in behaviour.
+
+# Linearising the behavioural equations
+
+Consider the transition of behaviour for mask wearing, where
+
+$$
+  \dot{B} = \omega(t)N(t) - \alpha(t) B(t)\, .
+$$
+
+Suppose we are considering an interval $[t_0, t_1]$ such that $B(t) \ll 1$ for $t \in [t_0, t_1]$.  Then $N \approx 1$, so
+
+$$
+  \begin{aligned}
+    \dot{B} & = (\omega_1 B(t) + \omega_2 I(t) + \omega_3) - (\alpha_1 + \alpha_2(1 - I(t)) + \alpha_3) B(t)\\
+      & = (\omega_1 - \alpha_1 - \alpha_2 - \alpha_3) B(t) + \alpha_2 I(t) B(t) + \omega_2 I(t) + \omega_3\\
+      & = k_3 B(t) + k_2 I(t) B(t) + k_1 I(t) + k_0\, .
+  \end{aligned}
+$$
+
+For simplicity, assume $t_0 = 0$. Then the solution to this system is given by
+
+$$
+  B(t) = C_1e^{\int_0^t k_3 + k_2I(\xi)\, d\xi} + e^{\int_0^t k_3 + k_2 I(\xi)\,d \xi} \int_0^t e^{-\int_0^\zeta k_3 + k_2 I(\xi)\, d\xi}(k_0 + k_1 I(\zeta))\, d\zeta\, .
+$$
+
+1. This solution was originally derived by wolfram
+2. Wolfram uses "1" at the bottom of the integrand rather than "0"
+
+**Derivation:**
+
+Consider the DE
+
+$$
+  \begin{aligned}
+  \dot{B}(t) & = k_3 B(t) + k_2 I(t) B(t) + k_1 I(t) + k_0 \\
+    & = (k_3 + k_2 I(t))  B(t) + (k_0 + k_1 I(t))\, . \qquad(1)
+  \end{aligned}
+$$
+
+This is of the form
+
+$$
+  \dot{B}(t) - g(t)B(t) = r(t)
+$$
+
+where
+
+$$
+  g(t) = k_3 + k_2 I(t) \quad\text{and}\quad r(t)=k_0 + k_1 I(t)\, .
+$$
+
+First consider the homogeneous equation
+
+$$
+  \dot{B}(t) - g(t)B(t) = 0\, . \qquad (2)
+$$
+
+Substituting $B(t) = e^{\sigma(t)}$ provides the characteristic equation
+
+$$
+  \dot{\sigma}(t) = g(t)
+$$
+
+and so
+
+$$
+  \sigma(t) = \int_0^t g(\xi)\, d\xi = \int_0^t k_3 + k_2I(\xi)\, d\xi\, .
+$$
+
+Then
+
+$$
+  B(t) = C_1 e^{\sigma(t)} = C_1e^{\int_0^t k_3 + k_2I(\xi)\, d\xi}
+$$
+
+is the solution to the homogeneous equation $(2)$.  Now consider the particular solution to $(1)$.  Using variation of parameters, we consider
+
+$$
+  B(t) = e^{\sigma(t)}u(t)
+$$
+
+as a solution to $(2)$.  Differentiating and substituting, we find
+
+$$
+  \dot{\sigma}(t)e^{\sigma(t)}u(t) + e^{\sigma(t)}\dot{u}(t) - g(t)e^{\sigma(t)}u(t) = r(t)\, .
+$$
+
+Since $e^{\sigma(t)}$ is a solution to $(2)$, this reduces to
+
+$$
+  e^{\sigma(t)}\dot{u}(t) = r(t)\, ,
 $$
 
 or
 
 $$
-  \omega_1 > \alpha_1 + \omega_2\varepsilon + \omega_3\, .
+  \dot{u}(t) = e^{-\sigma(t)} r(t)\,. 
 $$
 
-**I can probably derive further conditions, but I am really not hopeful for this.**
+Integrating gives
+
+$$
+  u(t) = \int_0^t e^{-\sigma(\zeta)} r(\zeta)\, d\zeta  = \int_0^t e^{-\int_0^\zeta k_3 + k_2 I(\xi)\, d\xi}(k_0 + k_1 I(\zeta))\, d\zeta\,.
+$$
+
+Combining the homogeneous and particular solutions gives the general solution to $(1)$ of the form
+
+$$
+  B(t) = C_1e^{\int_0^t k_3 + k_2I(\xi)\, d\xi} + e^{\int_0^t k_3 + k_2 I(\xi)\,d \xi} \int_0^t e^{-\int_0^\zeta k_3 + k_2 I(\xi)\, d\xi}(k_0 + k_1 I(\zeta))\, d\zeta\, .
+$$
+
+**END DERIVATION**
+
+Using the assumption $B(0) \approx 0$, this reduces to
+
+$$
+  B(t) = e^{\int_0^t k_3 + k_2 I(\xi)\,d \xi} \int_0^t e^{-\int_0^\zeta k_3 + k_2 I(\xi)\, d\xi}(k_0 + k_1 I(\zeta))\, d\zeta\, .
+$$
+
+## Simplification when $I$ is approximately constant
+
+We may simplify this further for small $t$ such that $I(t) \approx \varepsilon$, a constant.  This system reduces to
+
+$$
+  B(t) = \frac{k_0 + k_1\varepsilon}{k_3 + k_2\varepsilon}\left( e^{(k_3 + k_2\varepsilon)t} - 1 \right)\, .
+$$
+
+## Simplifaction by linearising $I$
+
+For small time and behaviour, our system of ODEs reduced to the basic SIR model and we get the linearised solution
+
+$$
+  I(t) \approx I_0 e^{(\beta - \gamma)t}\, .
+$$
+
+However, I am not convinced this will actually help anything.

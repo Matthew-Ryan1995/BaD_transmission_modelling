@@ -201,7 +201,7 @@ class msir(object):
 
 def event(t, y):
     if t > 10:
-        ans = y[2] + y[3] - 1
+        ans = y[2] + y[3] - 1e-3
     else:
         ans = 1
     return ans
@@ -216,7 +216,7 @@ if __name__ == "__main__":
 
     tic = time.time()
     # Time steps/number of days for the disease
-    TS = 1.0
+    TS = 1.0/14
     ND = 600.0
 
     t_start = 0.0
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     # Note the order of conditions (M-N)
     S0_m = 1e-6
     I0_m = 0
-    I0_n = 1e-6  # 1% start infected
+    I0_n = 1e-3  # 1% start infected
     R0_n = 0
     R0_m = 0
     S0_n = N - S0_m - I0_m - I0_n - R0_n - R0_m
@@ -239,6 +239,7 @@ if __name__ == "__main__":
 
     w1 = 8
     R0 = 5
+    gamma = 0.4
     # Enter custom params
     # cust_params = dict()
     # cust_params["transmission"] = R0*0.1
@@ -255,9 +256,9 @@ if __name__ == "__main__":
     # cust_params["nomask_const"] = 0.01
     # model = msir(**cust_params)
     cust_params = dict()
-    cust_params["transmission"] = R0*0.4
-    cust_params["infectious_period"] = 1/0.4
-    # cust_params["immune_period"] = 240
+    cust_params["transmission"] = R0*gamma
+    cust_params["infectious_period"] = 1/gamma
+    cust_params["immune_period"] = 240
     cust_params["av_lifespan"] = 0
     cust_params["susc_mask_efficacy"] = 0.8
     cust_params["inf_mask_efficacy"] = 0.8
@@ -301,7 +302,8 @@ if __name__ == "__main__":
 
     Rt = list(map(lambda t: model.NGM(dat[t, :]), range(dat.shape[0])))
 
-    switch_time = next(i for i, V in enumerate(Rt) if V <= 1)
+    # switch_time = next(i for i, V in enumerate(Rt) if V <= 1)
+    switch_time = 0
     tt = t_range[switch_time]
 
     if model.mask_social - model.nomask_social != 0:
@@ -531,3 +533,108 @@ if __name__ == "__main__":
 # print(a * dat[-1, 1] - w * dat[-1, 0])
 # print(a * dat[-1, 3] - w * dat[-1, 2])
 # print(a * dat[-1, 5] - w * dat[-1, 4])
+
+# %%
+
+k3 = model.mask_social - model.nomask_social - \
+    model.nomask_fear - model.nomask_const
+k2 = model.nomask_fear
+k1 = model.mask_fear
+k0 = model.mask_const
+
+
+# def get_B(t):
+#     if t == 0:
+#         return 0
+#     I = np.sum(dat[:, 2:4], 1)
+
+#     I_e_int = I[0:(t+1)] * np.exp(-k3 * t_range[0:(t+1)]) * \
+#         TS * np.exp(-k2 * np.cumsum(I[0:(t+1)]*TS))
+#     I_e_int = I_e_int.sum()
+
+#     e_int = np.exp(-k3 * t_range[0:(t+1)]) * TS * \
+#         np.exp(-k2 * np.cumsum(I[0:(t+1)]*TS))
+#     e_int = e_int.sum()
+
+#     numer = k1 * I_e_int + k0 * e_int
+#     denom = k3 * e_int + k2 * I_e_int + \
+#         np.exp(-k3 * t_range[t+1]) * np.exp(-k2 * np.sum(I[0:(t+1)]*TS))
+
+#     return numer/denom
+
+
+def get_B2(t):
+    # if t == 0:
+    #     return 0
+
+    I = np.sum(dat[:, 2:4], 1)
+
+    integrand = np.cumsum(k3 + k2 * I[0:(t+1)]) * TS
+
+    A1 = np.exp(integrand[-1])
+
+    A2 = np.exp(-integrand) * (k0 + k1 * I[0:(t+1)]) * TS
+    A2 = A2.sum()
+
+    return A1 * A2
+
+
+def get_B(t):
+    # if t == 0:
+    #     return 0
+
+    I = np.sum(dat[:, 2:4], 1)
+
+    c = k3 + k2*I[0]
+    k = k0 + k1*I[0]
+
+    return k/c*(np.exp(c*t_range[t]) - 1)
+
+
+B = []
+B2 = []
+ttt = 55
+
+for t in range(ttt):
+    B.append(get_B(t))
+for t in range(ttt):
+    B2.append(get_B2(t))
+
+plt.figure()
+plt.title("Estimate of behavioural equation\n B_0 = 10^{-6}, I_0 = 0.001")
+plt.plot(t_range[0:ttt], B, "b", label="Constant I approx")
+plt.plot(t_range[0:ttt], B2, "g", label="estimate")
+plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 0:5:2], 1), "r", label="truth")
+# plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
+plt.xlabel("time")
+plt.ylabel("Proportion performing behaviour")
+plt.legend()
+plt.show()
+
+plt.figure()
+plt.title(
+    "Estimate of behavioural equation for super small time\n B_0 = 10^{-6}, I_0 = 0.001")
+plt.plot(t_range[0:10], B[0:10], "b", label="Constant I approx")
+plt.plot(t_range[0:10], B2[0:10], "g", label="estimate")
+plt.plot(t_range[0:10], np.sum(dat[0:10, 0:5:2], 1), "r", label="truth")
+# plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
+plt.xlabel("time")
+plt.ylabel("Proportion performing behaviour")
+plt.legend()
+plt.show()
+
+
+# %%
+
+I = np.sum(dat[:, 2:4], 1)
+
+# a0 = model.mask_fear * I[0] + model.mask_const
+# a1 = model.mask_social - model.mask_fear * I[0] - model.mask_const - model.nomask_social - model.nomask_fear*(1 - I[0]) - model.nomask_const
+# a2 = model.nomask_social - model.mask_social
+
+w3 = 3/2 * (model.nomask_fear + model.nomask_const)
+
+a0 = w3
+a1 = model.mask_social - w3 - model.nomask_social - \
+    model.nomask_fear*(1) - model.nomask_const
+a2 = model.nomask_social - model.mask_social
