@@ -17,6 +17,7 @@ behaviour
 """
 
 # %% Packages/libraries
+from scipy.integrate import quad
 from scipy.optimize import fsolve
 import numpy as np
 import scipy as spi
@@ -626,15 +627,77 @@ plt.show()
 
 # %%
 
-I = np.sum(dat[:, 2:4], 1)
+# k3 = model.mask_social - model.nomask_social - \
+#     model.nomask_fear - model.nomask_const
+# k2 = model.nomask_fear
+# k1 = model.mask_fear
+# k0 = model.mask_const
 
-# a0 = model.mask_fear * I[0] + model.mask_const
-# a1 = model.mask_social - model.mask_fear * I[0] - model.mask_const - model.nomask_social - model.nomask_fear*(1 - I[0]) - model.nomask_const
-# a2 = model.nomask_social - model.mask_social
 
-w3 = 3/2 * (model.nomask_fear + model.nomask_const)
+# def k3k2I(t):
+#     i = [i for i in range(len(t_range)) if t_range[i] <= t][-1]
+#     i = int(i)
+#     I = np.sum(dat[:, 2:4], 1)
 
-a0 = w3
-a1 = model.mask_social - w3 - model.nomask_social - \
-    model.nomask_fear*(1) - model.nomask_const
-a2 = model.nomask_social - model.mask_social
+#     return k3 + k2 * I[i]
+
+
+# def k0k1I(t):
+#     i = [i for i in range(len(t_range)) if t_range[i] <= t][-1]
+#     i = int(i)
+#     I = np.sum(dat[:, 2:4], 1)
+
+#     return k0 + k1 * I[i]
+
+
+# def get_B3(t):
+#     t=int(t)
+#     integrate_1, err = quad(k3k2I, 0, t)
+
+#     def inner_quad(x):
+#         y, err = quad(k3k2I, 0, x)
+#         y = np.exp(-y)
+#         z = k0k1I(x)
+
+#         return y * z
+
+#     integrate_2, err = quad(inner_quad, 0, t)
+
+#     return np.exp(integrate_1) * integrate_2
+
+
+# B = []
+# B2 = []
+# B3 = []
+# ttt = 55
+
+# for t in range(ttt):
+#     B.append(get_B(t))
+# for t in range(ttt):
+#     B2.append(get_B2(t))
+# for t in range(ttt):
+#     B3.append(get_B3(t_range[t]))
+
+# plt.figure()
+# plt.title("Estimate of behavioural equation\n B_0 = 10^{-6}, I_0 = 0.001")
+# plt.plot(t_range[0:ttt], B, "b", label="Constant I approx")
+# plt.plot(t_range[0:ttt], B2, "g", label="estimate")
+# plt.plot(t_range[0:ttt], B3, "g", label="estimate with quad")
+# plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 0:5:2], 1), "r", label="truth")
+# # plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
+# plt.xlabel("time")
+# plt.ylabel("Proportion performing behaviour")
+# plt.legend()
+# plt.show()
+
+# # plt.figure()
+# # plt.title(
+# #     "Estimate of behavioural equation for super small time\n B_0 = 10^{-6}, I_0 = 0.001")
+# # plt.plot(t_range[0:10], B[0:10], "b", label="Constant I approx")
+# # plt.plot(t_range[0:10], B2[0:10], "g", label="estimate")
+# # plt.plot(t_range[0:10], np.sum(dat[0:10, 0:5:2], 1), "r", label="truth")
+# # # plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
+# # plt.xlabel("time")
+# # plt.ylabel("Proportion performing behaviour")
+# # plt.legend()
+# # plt.show()

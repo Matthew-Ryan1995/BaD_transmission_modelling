@@ -732,7 +732,7 @@ $$
   B(t) = \dfrac{\sqrt{4a_0a_2 - a_1^2}\tan\left( \frac{1}{2}(c_1 + t) \sqrt{4a_0a_2 - a_1^2}\right) - a_1}{2a_2}\, ,\qquad(**)
 $$
 
-where $c_1$ is a constant determined by the initial condition $B(0) = B_0$.  Noting that $t \geq 0$, this solution is exists under the dual conditions
+where $c_1$ is a constant determined by the initial condition $B(0) = B_0$.  Noting that $t \geq 0$, this solution exists under the dual conditions
 
 $$
   \begin{aligned}

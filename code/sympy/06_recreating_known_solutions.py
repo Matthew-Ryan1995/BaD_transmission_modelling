@@ -69,4 +69,4 @@ N_change = -w*N + a*M
 dfe_N = N_change  # .subs([(I, 0)])
 
 eqnset = [dfe_N, N + M - 1]
-ANS = solve(eqnset, (M, N), dict=True)
+ANS = solve(eqnset, (M, N))
