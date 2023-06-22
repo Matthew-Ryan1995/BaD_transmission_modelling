@@ -17,6 +17,7 @@ behaviour
 """
 
 # %% Packages/libraries
+import math
 from scipy.integrate import quad
 from scipy.optimize import fsolve
 import numpy as np
@@ -594,18 +595,120 @@ def get_B(t):
 
 B = []
 B2 = []
-ttt = 55
+ttt = 8000
 
 for t in range(ttt):
     B.append(get_B(t))
 for t in range(ttt):
     B2.append(get_B2(t))
 
+
+a0 = dat[0, 2:4].sum()
+a1 = (model.transmission * (1 - a0) - 1/model.infectious_period) * a0
+a2 = model.transmission * (1-a0) * a0 * (model.transmission * (1 - 2 * a0) - (model.susc_mask_efficacy +
+                                                                              model.inf_mask_efficacy) * (model.mask_fear * a0 + model.mask_const)) - gamma * a1
+a2 = a2/2
+
+
+def get_B_linear(t):
+
+    int_1, err = quad(lambda x: k3 + k2 * (a0 + a1 * x), 0, t)
+
+    def inner_int(zeta):
+        int_2, err = quad(lambda x: k3 + k2 * (a0 + a1 * x), 0, zeta)
+
+        return np.exp(-int_2) * (k0 + k1 * (a0 + a1 * zeta))
+
+    int_3, err = quad(inner_int, 0, t)
+
+    return np.exp(int_1) * int_3
+
+
+def get_B_quad(t):
+
+    int_1, err = quad(lambda x: k3 + k2 * (a0 + a1 * x + a2 * x**2), 0, t)
+
+    def inner_int(zeta):
+        int_2, err = quad(lambda x: k3 + k2 *
+                          (a0 + a1 * x + a2 * x**2), 0, zeta)
+
+        return np.exp(-int_2) * (k0 + k1 * (a0 + a1 * zeta + a2 * zeta**2))
+
+    int_3, err = quad(inner_int, 0, t)
+
+    return np.exp(int_1) * int_3
+
+
+def get_B_exp(t):
+
+    int_1, err = quad(lambda x: k3 + k2 * (a0 *
+                      np.exp((model.transmission - 1/model.infectious_period) * x)), 0, t)
+
+    def inner_int(zeta):
+        int_2, err = quad(lambda x: k3 + k2 *
+                          (a0*np.exp((model.transmission - 1/model.infectious_period) * x)), 0, zeta)
+
+        return np.exp(-int_2) * (k0 + k1 * (a0*np.exp((model.transmission - 1/model.infectious_period) * zeta)))
+
+    int_3, err = quad(inner_int, 0, t)
+
+    return np.exp(int_1) * int_3
+
+
+def get_B_cosh(t):
+
+    def I_est(zeta):
+        gamma = 1/model.infectious_period
+        a = np.sqrt((S0_n * R0 - 1)**2 + 2*S0_n*I0_n*R0**2)
+
+        phi = math.atanh((S0_n * R0 - 1)/a)
+
+        ANS = a**2 / (2 * S0_n * R0**2) * \
+            (math.cosh(a*gamma*zeta/2 - phi))**(-2)
+
+        return ANS
+
+    int_1, err = quad(lambda x: k3 + k2 * I_est(x), 0, t)
+
+    def inner_int(zeta):
+        int_2, err = quad(lambda x: k3 + k2 * I_est(x), 0, zeta)
+
+        return np.exp(-int_2) * (k0 + k1 * I_est(zeta))
+
+    int_3, err = quad(inner_int, 0, t)
+
+    return np.exp(int_1) * int_3
+
+
+B3 = []
+B4 = []
+B5 = []
+B6 = []
+for t in t_range[0:ttt]:
+    B3.append(get_B_linear(t))
+    B4.append(get_B_quad(t))
+    B5.append(get_B_exp(t))
+    B6.append(get_B_cosh(t))
+
+# %%
+
+t_first_plot = 45
+
 plt.figure()
 plt.title("Estimate of behavioural equation\n B_0 = 10^{-6}, I_0 = 0.001")
-plt.plot(t_range[0:ttt], B, "b", label="Constant I approx")
-plt.plot(t_range[0:ttt], B2, "g", label="estimate")
-plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 0:5:2], 1), "r", label="truth")
+plt.plot(t_range[0:t_first_plot], B[0:t_first_plot],
+         "b", label="estimate constant")
+plt.plot(t_range[0:t_first_plot], B2[0:t_first_plot], "g", label="estimate")
+plt.plot(t_range[0:t_first_plot], B3[0:t_first_plot],
+         "y", label="estimate linear")
+plt.plot(t_range[0:t_first_plot], B4[0:t_first_plot],
+         "orange", label="estimate quad")
+plt.plot(t_range[0:t_first_plot], B5[0:t_first_plot],
+         "purple", label="estimate exp")
+plt.plot(t_range[0:t_first_plot], B6[0:t_first_plot],
+         "brown", label="estimate K&R")
+plt.plot(t_range[0:t_first_plot], np.sum(
+    dat[0:t_first_plot, 0:5:2], 1), "r:", label="truth")
 # plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
 plt.xlabel("time")
 plt.ylabel("Proportion performing behaviour")
@@ -614,9 +717,31 @@ plt.show()
 
 plt.figure()
 plt.title(
+    "Estimate of behavioural equation for long time\n B_0 = 10^{-6}, I_0 = 0.001")
+plt.plot(t_range[0:ttt], B, "b", label="estimate constant")
+plt.plot(t_range[0:ttt], B2, "g", label="estimate")
+# plt.plot(t_range[0:ttt], B3[0:ttt], "y", label="estimate linear")
+# plt.plot(t_range[0:ttt], B4[0:ttt], "orange", label="estimate quad")
+plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 0:5:2], 1), "r", label="truth")
+# plt.plot(t_range[0:ttt], B5[0:ttt], "purple", label="estimate exp")
+# plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
+plt.plot(t_range[0:ttt], B6[0:ttt],
+         "brown", label="estimate K&R")
+plt.xlabel("time")
+plt.ylabel("Proportion performing behaviour")
+plt.legend()
+plt.show()
+
+plt.figure()
+plt.title(
     "Estimate of behavioural equation for super small time\n B_0 = 10^{-6}, I_0 = 0.001")
-plt.plot(t_range[0:10], B[0:10], "b", label="Constant I approx")
+plt.plot(t_range[0:10], B[0:10], "b", label="estimate constant")
 plt.plot(t_range[0:10], B2[0:10], "g", label="estimate")
+plt.plot(t_range[0:10], B3[0:10], "y", label="estimate linear")
+plt.plot(t_range[0:10], B4[0:10], "orange", label="estimate quad")
+plt.plot(t_range[0:10], B5[0:10], "purple", label="estimate exp")
+plt.plot(t_range[0:10], B6[0:10],
+         "brown", label="estimate K&R")
 plt.plot(t_range[0:10], np.sum(dat[0:10, 0:5:2], 1), "r", label="truth")
 # plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
 plt.xlabel("time")
@@ -680,7 +805,7 @@ plt.show()
 
 # plt.figure()
 # plt.title("Estimate of behavioural equation\n B_0 = 10^{-6}, I_0 = 0.001")
-# plt.plot(t_range[0:ttt], B, "b", label="Constant I approx")
+# plt.plot(t_range[0:ttt], B, "b", label="Cestimate constant")
 # plt.plot(t_range[0:ttt], B2, "g", label="estimate")
 # plt.plot(t_range[0:ttt], B3, "g", label="estimate with quad")
 # plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 0:5:2], 1), "r", label="truth")
@@ -693,7 +818,7 @@ plt.show()
 # # plt.figure()
 # # plt.title(
 # #     "Estimate of behavioural equation for super small time\n B_0 = 10^{-6}, I_0 = 0.001")
-# # plt.plot(t_range[0:10], B[0:10], "b", label="Constant I approx")
+# # plt.plot(t_range[0:10], B[0:10], "b", label="Cestimate constant")
 # # plt.plot(t_range[0:10], B2[0:10], "g", label="estimate")
 # # plt.plot(t_range[0:10], np.sum(dat[0:10, 0:5:2], 1), "r", label="truth")
 # # # plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")

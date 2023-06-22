@@ -959,23 +959,222 @@ $$
 Using the assumption $B(0) \approx 0$, this reduces to
 
 $$
-  B(t) = e^{\int_0^t k_3 + k_2 I(\xi)\,d \xi} \int_0^t e^{-\int_0^\zeta k_3 + k_2 I(\xi)\, d\xi}(k_0 + k_1 I(\zeta))\, d\zeta\, .
+  B(t) = e^{\int_0^t k_3 + k_2 I(\xi)\,d \xi} \int_0^t e^{-\int_0^\zeta k_3 + k_2 I(\xi)\, d\xi}(k_0 + k_1 I(\zeta))\, d\zeta\, . \qquad (\star)
 $$
 
-## Simplification when $I$ is approximately constant
+## Simplifying $B(t)$ through estimating $I(t)$
 
-We may simplify this further for small $t$ such that $I(t) \approx \varepsilon$, a constant.  This system reduces to
+We consider the following approximations of $I(t)$:
+
+1. Constant
+2. Linear
+2. Quadratic
+4. Exponential
+5. Keeling and Rohani
+
+With the exception of 1., no approximations yeild a (useful) functional form for $B(t)$, but can be used in numerical approximations.
+
+### Constant
+
+Suppose $t$ is such that $I(t) \approx \varepsilon$, a constant.  Then Equation $(\star)$ reduces to
 
 $$
   B(t) = \frac{k_0 + k_1\varepsilon}{k_3 + k_2\varepsilon}\left( e^{(k_3 + k_2\varepsilon)t} - 1 \right)\, .
 $$
 
-## Simplifaction by linearising $I$
+### Linear
 
-For small time and behaviour, our system of ODEs reduced to the basic SIR model and we get the linearised solution
+Suppose $I(t) \approx a_0 + a_1 t$.  Recalling that $B(t)$ is small (approximately $0$), and the population is normalised to $1$, using a Taylor approximation about $t = 0$ we get
+
+* $a_0 = I(0)$
+* $a_1 = \dot(I)(0) \approx \beta I(0)(1 - I(0)) - \gamma I(0)$.
+
+### Quadratic
+
+Suppose $I(t) \approx a_0 + a_1 t + \frac{a_2}{2} t^2$.  Using a Taylor approximation about $t = 0$, we have $a_0$ and $a_1$ as above, and $a_2$ given by
 
 $$
-  I(t) \approx I_0 e^{(\beta - \gamma)t}\, .
+  a_2 = \frac{d^2I}{dt^2} (0)\, .
+$$  
+
+Now,
+
+$$
+ \dot{I}(t) = \beta(S_N(t) + (1-c)S_B(t))(I_N(t) + (1-p)I_B(t)) - \gamma I(t)\, ,
 $$
 
-However, I am not convinced this will actually help anything.
+where $I(t) = I_N(t) + I_B(t)$.  Thus the second derivative is
+
+$$
+  \begin{aligned}
+    \frac{d}{dt}\dot{I}(t) & = \beta\left[ (\dot{S}_N(t) + (1-c)\dot{S}_B(t))(I_N(t) + (1-p)I_B(t)) + (S_N(t) + (1-c)S_B(t))(\dot{I}_N(t) + (1-p)\dot{I}_B(t)) \right] \\
+    & \qquad - \gamma \dot{I}(t)\, .
+  \end{aligned}
+$$
+
+Evaluating this at $t = 0$ and using $B(t) \approx 0$ gives
+
+$$
+    \begin{aligned}
+    \frac{d}{dt}\dot{I}(0) & \approx \beta\left[ (\dot{S}_N(0) + (1-c)\dot{S}_B(0))I(0) + (1-I(0))(\dot{I}_N(0) + (1-p)\dot{I}_B(0)) \right]  - \gamma a_1\, ,
+  \end{aligned}
+$$
+
+so we need to calculate $\dot{S}_N(0), \dot{S}_B(0), \dot{I}_N(0)$, and  $\dot{I}_B(0)$.  We see that
+
+$$
+\begin{aligned}
+  \dot{S}_N(0) & = -\beta(I_N(0) + (1-p)I_B(0))S_N(0) - \omega(0)S_N(0) + \alpha(0)S_B(0) + \nu R_N(0) \\
+    & \approx -\beta I(0)(1 - I(0)) - (\omega_1 B(0) + \omega_2 I(0) + \omega_3)(1 - I(0)) \\
+    & \approx \left[ -\beta I(0) - (\omega_2 I(0) + \omega_3) \right](1 - I(0))\, ,
+\end{aligned}
+$$
+
+and
+
+$$
+\begin{aligned}
+  \dot{S}_B(0) & = -\beta(1-c)(I_N(0) + (1-p)I_B(0))S_B(0) + \omega(0)S_N(0) - \alpha(0)S_B(0) + \nu R_B(0) \\
+    & \approx  (\omega_2 I(0) + \omega_3)(1 - I(0)) \, .
+\end{aligned}
+$$
+
+Similarly, we find
+
+$$
+\begin{aligned}
+  \dot{I}_N(0) & = \beta(I_N(0) + (1-p)I_B(0))S_N(0) - \omega(0)I_N(0) + \alpha(0)I_B(0) -\gamma I_N(0) \\
+    & \approx \beta I(0)(1 - I(0)) - (\omega_1 B(0) + \omega_2 I(0) + \omega_3)I(0) - \gamma I(0) \\
+    & \approx \left[\beta (1-I(0)) - (\omega_2 I(0) + \omega_3) - \gamma \right]I(0)\, ,
+\end{aligned}
+$$
+
+and
+
+$$
+\begin{aligned}
+  \dot{I}_B(0) & = \beta(1-c)(I_N(0) + (1-p)I_B(0))S_B(0) + \omega(0)I_N(0) - \alpha(0)I_B(0) -\gamma I_B(0) \\
+    & \approx  (\omega_2 I(0) + \omega_3)I(0)\, .
+\end{aligned}
+$$
+
+Putting these together gives
+
+$$
+  a_2 = \beta(1-I(0))I(0)\left(\beta (1-2I(0)) -(c + p)(\omega_2 I(0) + \omega_3 )\right)  - \gamma a_1\, .
+$$
+
+### Exponential
+
+For small $B$ and $I$, we can approximate
+
+$$
+  \dot{I}(t) \approx \beta I(t) - \gamma(t)\, ,
+$$
+
+i.e. we return the basic SIR model for small time and behaviour.  Solving this gives
+
+$$
+  I(t) \approx I(0)\exp((\beta - \gamma) t)\, .
+$$ 
+
+### Keeling and Rohani
+
+From Box 2.2 in K\& R we get 
+
+$$
+  I(t) = \frac{\sigma^2}{2S(0)\mathscr{R}_0^2} \mathrm{sech}^2\left( \frac{1}{2} \sigma \gamma t - \phi \right)\, ,
+$$
+
+where
+
+$$
+  \sigma = \left[ (S(0)\mathscr{R}_0 - 1)^2 + 2S(0)I(0)\mathscr{R}_0^2 \right]^{1/2}\, ,
+$$
+
+and
+
+$$
+  \phi = \tanh^{-1}\left[ \frac{1}{\sigma}(S(0)\mathscr{R}_0 - 1) \right]\, .
+$$
+
+```{r, fig.asp = 0.618, fig.align='center', fig.cap="Estimates of the early term behaviour for the time period they are valid.  The green 'estimate' line shows the estimate of B using the observed values of I(t) from the solve ivp function."}
+knitr::include_graphics("../img/B_est_less_1.png")
+```
+
+```{r, fig.asp = 0.618, fig.align='center', fig.cap="Estimates of the early term behaviour for early time.  The green 'estimate' line shows the estimate of B using the observed values of I(t) from the solve ivp function."}
+knitr::include_graphics("../img/B_est_early.png")
+```
+
+```{r, fig.asp = 0.618, fig.align='center', fig.cap="Estimates of the early term behaviour for all time simulated.  The green 'estimate' line shows the estimate of B using the observed values of I(t) from the solve ivp function."}
+knitr::include_graphics("../img/B_est_all.png")
+```
+
+
+<!-- ## Simplification when $I$ is approximately constant -->
+
+<!-- We may simplify this further for small $t$ such that $I(t) \approx \varepsilon$, a constant.  This system reduces to -->
+
+<!-- $$ -->
+<!--   B(t) = \frac{k_0 + k_1\varepsilon}{k_3 + k_2\varepsilon}\left( e^{(k_3 + k_2\varepsilon)t} - 1 \right)\, . -->
+<!-- $$ -->
+<!-- ## Simplification when $I$ is approximately linear -->
+
+<!-- Suppose $t_0$ is such that behaviour is small and our linearisation of $B$ holds.  Consider the Taylor expansion around $t_0$ given by -->
+
+<!-- $$ -->
+<!--   I(t) = \sum_{l = 0}^\infty \frac{d^l}{dt^l}I(t_0) \frac{(t- t_0)^l}{l!}\, . -->
+<!-- $$ -->
+
+<!-- Approximate this infinite sum by a finite sum -->
+
+
+<!-- $$ -->
+<!--   I(t) \approx \sum_{l = 0}^L \frac{d^l}{dt^l}I(t_0) \frac{(t- t_0)^l}{l!}\, . -->
+<!-- $$ -->
+<!-- Consider the integral -->
+
+<!-- $$ -->
+<!--   \begin{aligned} -->
+<!--     \int_0^t k_3 + k_2 I(\xi)\,d \xi & \approx \int_0^t k_3 + k_2\sum_{l = 0}^L \frac{d^l}{dt^l}I(t_0) \frac{(\xi- t_0)^l}{l!} \,d \xi \\ -->
+<!--       & = k_3t + k_2 \left[\sum_{l = 0}^L \frac{d^l}{dt^l}I(t_0) \frac{(t - t_0)^{l+1}}{(l+1)!} - \sum_{l = 0}^L \frac{d^l}{dt^l}I(t_0) \frac{(-t_0)^{l+1}}{(l+1)!} \right]\, .\qquad(A) -->
+<!--   \end{aligned} -->
+<!-- $$ -->
+
+<!-- Consider $L = 1$.  We need the terms $I(t_0)$ and $\dot{I}(t_0)$.  Writing $I(t_0) = \varepsilon$, we calculate -->
+
+<!-- $$ -->
+<!--   \begin{aligned} -->
+<!--     \dot{I}(t_0) & = \beta\left( S_N(t_0) + (1-c) S_B(t_0) \right)\left( I_N(t_0) + (1-p) ( I_B(t_0)) - \gamma I(t_0) \right) \\ -->
+<!--       & \approx (\beta(1-\varepsilon) - \gamma )\varepsilon\, , -->
+<!--   \end{aligned} -->
+<!-- $$ -->
+
+<!-- since behaviour is small so $S_B(t_0) \approx I_B(t_0) \approx 0$.  Thus the linear approximation of $I(t)$ is -->
+
+<!-- $$ -->
+<!--   I(t) \approx \left[1 + (\beta(1-\varepsilon) - \gamma )(t-t_0)\right] \varepsilon\,. -->
+<!-- $$ -->
+
+<!-- Returning to $(A)$, we find -->
+
+<!-- $$ -->
+<!--   \begin{aligned} -->
+<!--     \int_0^t k_3 + k_2 I(\xi)\,d \xi & \approx  k_3t + k_2 \left[\varepsilon t + (\beta(1-\varepsilon) - \gamma )\varepsilon \frac{t^2}{2}  - \left(-\varepsilon t_0 + (\beta(1-\varepsilon) - \gamma )\varepsilon \frac{t_0^2}{2} \right)\right] \\ -->
+<!--     & = k_3t + k_2\left( \varepsilon(t + t_0)  + (\beta(1-\varepsilon) - \gamma )\varepsilon \frac{(t^2 - t_0^2)}{2}\right) -->
+<!--   \end{aligned} -->
+<!-- $$ -->
+
+
+
+<!-- ## Simplifaction by linearising $I$ -->
+
+<!-- For small time and behaviour, our system of ODEs reduced to the basic SIR model and we get the linearised solution -->
+
+<!-- $$ -->
+<!--   I(t) \approx I_0 e^{(\beta - \gamma)t}\, . -->
+<!-- $$ -->
+
+<!-- However, I am not convinced this will actually help anything. -->
+
+<!-- - Simplifying with poly or exp does not give nice closed form solution, but can approximate the I function in integral formula. -->
