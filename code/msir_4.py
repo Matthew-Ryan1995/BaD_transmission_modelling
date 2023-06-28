@@ -263,9 +263,9 @@ if __name__ == "__main__":
     cust_params["immune_period"] = 240
     cust_params["av_lifespan"] = 0
     cust_params["susc_mask_efficacy"] = 0.8
-    cust_params["inf_mask_efficacy"] = 0.8
+    cust_params["inf_mask_efficacy"] = 0.4
     cust_params["nomask_social"] = 0.5
-    cust_params["nomask_fear"] = 0.0
+    cust_params["nomask_fear"] = 1e-1
     cust_params["mask_social"] = 0.05 * w1
     cust_params["mask_fear"] = w1
     cust_params["mask_const"] = 0.01
@@ -344,9 +344,15 @@ if __name__ == "__main__":
     plt.show()
 
     # Everything everywhere all at once
+    # K = (model.mask_const + 1/model.infectious_period - (model.nomask_const**2)/model.mask_const) / \
+    #     (model.transmission * (1 + (1 - model.inf_mask_efficacy)
+    #      * model.nomask_const / model.mask_const))
+    # K2 = model.mask_const / model.nomask_const * K
     plt.figure()
     plt.plot(dat[:, 0], label="Susceptibles - Mask")
     plt.plot(dat[:, 1], label="Susceptibles - No Mask")
+    # plt.plot([0, dat.shape[0]], [K, K], ":k")
+    # plt.plot([0, dat.shape[0]], [K2, K2], ":k")
     plt.plot(dat[:, 2], label="Infectious - Mask")
     plt.plot(dat[:, 3], label="Infectious - No Mask")
     plt.plot(dat[:, 4], label="Recovereds - Mask")
@@ -564,12 +570,27 @@ k0 = model.mask_const
 
 #     return numer/denom
 
+def sirs_eqn(t, PP):
+    Y = np.zeros(3)
+
+    Y[0] = -model.transmission * PP[0] * PP[1] + 1/model.immune_period * PP[2]
+    Y[1] = model.transmission * PP[0] * PP[1] - \
+        1/model.infectious_period * PP[1]
+    Y[2] = 1/model.infectious_period * PP[1] - 1/model.immune_period * PP[2]
+    return Y
+
+
+sirs_res = spi.integrate.solve_ivp(
+    sirs_eqn, [t_start, t_end], y0=init_cond[1:6:2], t_eval=t_range)
+sirs_dat = sirs_res.y.T
+
 
 def get_B2(t):
     # if t == 0:
     #     return 0
 
-    I = np.sum(dat[:, 2:4], 1)
+    # I = np.sum(dat[:, 2:4], 1)
+    I = sirs_dat[:, 1]
 
     integrand = np.cumsum(k3 + k2 * I[0:(t+1)]) * TS
 
@@ -687,7 +708,7 @@ B6 = []
 for t in t_range[0:ttt]:
     B3.append(get_B_linear(t))
     B4.append(get_B_quad(t))
-    B5.append(get_B_exp(t))
+    # B5.append(get_B_exp(t))
     B6.append(get_B_cosh(t))
 
 # %%
@@ -698,13 +719,14 @@ plt.figure()
 plt.title("Estimate of behavioural equation\n B_0 = 10^{-6}, I_0 = 0.001")
 plt.plot(t_range[0:t_first_plot], B[0:t_first_plot],
          "b", label="estimate constant")
-plt.plot(t_range[0:t_first_plot], B2[0:t_first_plot], "g", label="estimate")
+plt.plot(t_range[0:t_first_plot], B2[0:t_first_plot],
+         "g", label="estimate SIRS")
 plt.plot(t_range[0:t_first_plot], B3[0:t_first_plot],
          "y", label="estimate linear")
 plt.plot(t_range[0:t_first_plot], B4[0:t_first_plot],
          "orange", label="estimate quad")
-plt.plot(t_range[0:t_first_plot], B5[0:t_first_plot],
-         "purple", label="estimate exp")
+# plt.plot(t_range[0:t_first_plot], B5[0:t_first_plot],
+# "purple", label="estimate exp")
 plt.plot(t_range[0:t_first_plot], B6[0:t_first_plot],
          "brown", label="estimate K&R")
 plt.plot(t_range[0:t_first_plot], np.sum(
@@ -719,7 +741,7 @@ plt.figure()
 plt.title(
     "Estimate of behavioural equation for long time\n B_0 = 10^{-6}, I_0 = 0.001")
 plt.plot(t_range[0:ttt], B, "b", label="estimate constant")
-plt.plot(t_range[0:ttt], B2, "g", label="estimate")
+plt.plot(t_range[0:ttt], B2, "g", label="estimate SIRS")
 # plt.plot(t_range[0:ttt], B3[0:ttt], "y", label="estimate linear")
 # plt.plot(t_range[0:ttt], B4[0:ttt], "orange", label="estimate quad")
 plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 0:5:2], 1), "r", label="truth")
@@ -736,13 +758,13 @@ plt.figure()
 plt.title(
     "Estimate of behavioural equation for super small time\n B_0 = 10^{-6}, I_0 = 0.001")
 plt.plot(t_range[0:10], B[0:10], "b", label="estimate constant")
-plt.plot(t_range[0:10], B2[0:10], "g", label="estimate")
+plt.plot(t_range[0:10], B2[0:10], "g", label="estimate SIRS")
 plt.plot(t_range[0:10], B3[0:10], "y", label="estimate linear")
 plt.plot(t_range[0:10], B4[0:10], "orange", label="estimate quad")
-plt.plot(t_range[0:10], B5[0:10], "purple", label="estimate exp")
+# plt.plot(t_range[0:10], B5[0:10], "purple", label="estimate exp")
 plt.plot(t_range[0:10], B6[0:10],
          "brown", label="estimate K&R")
-plt.plot(t_range[0:10], np.sum(dat[0:10, 0:5:2], 1), "r", label="truth")
+plt.plot(t_range[0:10], np.sum(dat[0:10, 0:5:2], 1), "r:", label="truth")
 # plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
 plt.xlabel("time")
 plt.ylabel("Proportion performing behaviour")

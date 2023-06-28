@@ -1110,6 +1110,138 @@ knitr::include_graphics("../img/B_est_early.png")
 knitr::include_graphics("../img/B_est_all.png")
 ```
 
+## Simplifying the behaviour model estimate
+
+Although ($\star$) does not have an analytic solution in general, we can derive many analytic solutions when $k_2 = \alpha_2 = 0$.  This assumption implies there is **no** effect of "fear of disease" for stopping people doing the behaviour.  That is, people will not stop doing the behaviour because there is "little" disease in the community.  Under this assumption, we can rewrite ($\star$) as 
+
+$$
+\begin{aligned}
+  B(t) & = e^{k_3t} \int_0^t e^{-k_3\zeta}(k_0 + k_1 I(\zeta))\, d\zeta \\
+  & = \frac{k_0}{k_3}(e^{k_3t} - 1) + k_1e^{k_3t}\int_{0}^t e^{-k_3\zeta} I(\zeta)\, d\zeta \, . \qquad (\star\star)
+\end{aligned}
+$$
+
+We can see then that $B(t)$ has a "behaviour affecting behaviour" term ($b(t) = \frac{k_0}{k_3}(e^{k_3t} - 1)$) and an "infection affecting behaviour" term ($i(t) = k_1e^{k_3t}\int_{0}^t e^{-k_3\zeta} I(\zeta)\, d\zeta$).  We now solve $i(t)$ under some approximation of $I(t)$.  The approximations considered are
+
+
+1. Polynomial
+2. Exponential
+3. Keeling and Rohani
+
+### Polynomial
+
+Suppose we write 
+
+$$
+  I(t) \approx \sum_{m = 0}^{M} a_m t^m
+$$
+
+for some constants $a_0, a_1, \dots, a_m$ (think Taylor expansion).  This scenario captures the constant, linear, and quadratic approximations considered above.  Fix $M$, and consider
+
+$$
+ \begin{aligned}
+  i(t) & = k_1e^{k_3t}\int_{0}^t  e^{-k_3\zeta}I(\zeta)\, d\zeta \\
+    & \approx k_1 e^{k_3t} \sum_{m = 0}^M a_m \int_{0}^t \zeta^m e^{-k_3\zeta} \, d\zeta \\
+    & = k_1 e^{k_3t} \sum_{m = 0}^M a_m E_m(t)\, ,
+ \end{aligned}
+$$
+
+where we have written
+
+$$
+  E_m(t) = \int_{0}^t \zeta^m e^{-k_3\zeta} \, d\zeta\, .
+$$
+
+Using integration by parts on $E_m(t)$ we find
+
+$$
+  \begin{aligned}
+    E_m(t) & = \int_{0}^t \zeta^m e^{-k_3\zeta} \, d\zeta \\
+      & = \left.-\frac{\zeta^m e^{-k_3\zeta}}{k_3}\right|_{0}^t + \frac{m}{k_3}\int_{0}^t \zeta^{m-1} e^{-k_3\zeta} \, d\zeta \\
+      & = \frac{m}{k_3} E_{m-1}(t) - \frac{t^m e^{-k_3 t}}{k_3}\, ,
+  \end{aligned}
+$$
+
+which defines a recurrence relation noting that
+
+$$
+  \begin{aligned}
+    E_0(t) & = \int_{0}^t e^{-k_3\zeta} \, d\zeta \\
+      & = \frac{1}{k_3}\left( 1 - e^{-k_3t} \right)\, .
+  \end{aligned}
+$$
+
+Defining
+
+$$
+  F_m(t) = e^{k_3t} E_m(t)
+$$
+
+gives the relation
+
+$$
+  F_m(t) = \frac{m}{k_3} F_{m-1}(t) - \frac{t^m }{k_3}
+$$
+
+with starting point
+
+$$
+  F_0(t) = \frac{1}{k_3}\left(e^{k_3t} - 1 \right)\, .
+$$
+
+Then
+
+$$
+\begin{aligned}
+  i(t) & \approx k_1 e^{k_3t} \sum_{m = 0}^M a_m E_m(t) \\
+    & = k_1\sum_{m = 0}^M a_m F_m(t)
+\end{aligned}
+$$
+
+gives a solution for the affect of infection on behaviour under a polynomial approximation.  Note that this agrees with the previous solution under a constant approximation for $I(t)$ when $k_2 = 0$.
+
+### Exponential
+
+Suppose 
+
+$$
+  I(t) \approx I(0)\exp((\beta - \gamma) t)\, .
+$$
+
+Then we may write
+
+$$
+  \begin{aligned}
+     i(t) & = k_1e^{k_3t}\int_{0}^t  e^{-k_3\zeta}I(\zeta)\, d\zeta \\
+      & \approx I(0)k_1e^{k_3t}\int_{0}^t e^{(\beta - \gamma - k_3) \zeta}\, d\zeta \\
+      & = \frac{I(0)k_1}{\beta - \gamma - k_3}\left( e^{(\beta - \gamma)t} - e^{k_3t} \right)
+  \end{aligned}
+$$
+
+### Keeling and Rohani
+
+The approximation of the SIR solution from K\& R is 
+
+
+$$
+  I(t) = \frac{\sigma^2}{2S(0)\mathscr{R}_0^2} \mathrm{sech}^2\left( \frac{1}{2} \sigma \gamma t - \phi \right)\, ,
+$$
+
+where
+
+$$
+  \sigma = \left[ (S(0)\mathscr{R}_0 - 1)^2 + 2S(0)I(0)\mathscr{R}_0^2 \right]^{1/2}\, ,
+$$
+
+and
+
+$$
+  \phi = \tanh^{-1}\left[ \frac{1}{\sigma}(S(0)\mathscr{R}_0 - 1) \right]\, .
+$$
+
+Inserting this into $i(t)$ gives a solution using hypergeometric functions.  Not convinced this is a tree I want to bark up.
+
+
 
 <!-- ## Simplification when $I$ is approximately constant -->
 
