@@ -265,7 +265,7 @@ if __name__ == "__main__":
     cust_params["susc_mask_efficacy"] = 0.8
     cust_params["inf_mask_efficacy"] = 0.4
     cust_params["nomask_social"] = 0.5
-    cust_params["nomask_fear"] = 1e-1
+    cust_params["nomask_fear"] = 0
     cust_params["mask_social"] = 0.05 * w1
     cust_params["mask_fear"] = w1
     cust_params["mask_const"] = 0.01
@@ -544,232 +544,223 @@ if __name__ == "__main__":
 
 # %%
 
-k3 = model.mask_social - model.nomask_social - \
-    model.nomask_fear - model.nomask_const
-k2 = model.nomask_fear
-k1 = model.mask_fear
-k0 = model.mask_const
+    k3 = model.mask_social - model.nomask_social - \
+        model.nomask_fear - model.nomask_const
+    k2 = model.nomask_fear
+    k1 = model.mask_fear
+    k0 = model.mask_const
 
+    # def get_B(t):
+    #     if t == 0:
+    #         return 0
+    #     I = np.sum(dat[:, 2:4], 1)
 
-# def get_B(t):
-#     if t == 0:
-#         return 0
-#     I = np.sum(dat[:, 2:4], 1)
+    #     I_e_int = I[0:(t+1)] * np.exp(-k3 * t_range[0:(t+1)]) * \
+    #         TS * np.exp(-k2 * np.cumsum(I[0:(t+1)]*TS))
+    #     I_e_int = I_e_int.sum()
 
-#     I_e_int = I[0:(t+1)] * np.exp(-k3 * t_range[0:(t+1)]) * \
-#         TS * np.exp(-k2 * np.cumsum(I[0:(t+1)]*TS))
-#     I_e_int = I_e_int.sum()
+    #     e_int = np.exp(-k3 * t_range[0:(t+1)]) * TS * \
+    #         np.exp(-k2 * np.cumsum(I[0:(t+1)]*TS))
+    #     e_int = e_int.sum()
 
-#     e_int = np.exp(-k3 * t_range[0:(t+1)]) * TS * \
-#         np.exp(-k2 * np.cumsum(I[0:(t+1)]*TS))
-#     e_int = e_int.sum()
+    #     numer = k1 * I_e_int + k0 * e_int
+    #     denom = k3 * e_int + k2 * I_e_int + \
+    #         np.exp(-k3 * t_range[t+1]) * np.exp(-k2 * np.sum(I[0:(t+1)]*TS))
 
-#     numer = k1 * I_e_int + k0 * e_int
-#     denom = k3 * e_int + k2 * I_e_int + \
-#         np.exp(-k3 * t_range[t+1]) * np.exp(-k2 * np.sum(I[0:(t+1)]*TS))
+    #     return numer/denom
 
-#     return numer/denom
+    def sirs_eqn(t, PP):
+        Y = np.zeros(3)
 
-def sirs_eqn(t, PP):
-    Y = np.zeros(3)
+        Y[0] = -model.transmission * PP[0] * \
+            PP[1] + 1/model.immune_period * PP[2]
+        Y[1] = model.transmission * PP[0] * PP[1] - \
+            1/model.infectious_period * PP[1]
+        Y[2] = 1/model.infectious_period * \
+            PP[1] - 1/model.immune_period * PP[2]
+        return Y
 
-    Y[0] = -model.transmission * PP[0] * PP[1] + 1/model.immune_period * PP[2]
-    Y[1] = model.transmission * PP[0] * PP[1] - \
-        1/model.infectious_period * PP[1]
-    Y[2] = 1/model.infectious_period * PP[1] - 1/model.immune_period * PP[2]
-    return Y
+    sirs_res = spi.integrate.solve_ivp(
+        sirs_eqn, [t_start, t_end], y0=init_cond[1:6:2], t_eval=t_range)
+    sirs_dat = sirs_res.y.T
 
+    def get_B2(t):
+        # if t == 0:
+        #     return 0
 
-sirs_res = spi.integrate.solve_ivp(
-    sirs_eqn, [t_start, t_end], y0=init_cond[1:6:2], t_eval=t_range)
-sirs_dat = sirs_res.y.T
+        # I = np.sum(dat[:, 2:4], 1)
+        I = sirs_dat[:, 1]
 
+        integrand = np.cumsum(k3 + k2 * I[0:(t+1)]) * TS
 
-def get_B2(t):
-    # if t == 0:
-    #     return 0
+        A1 = np.exp(integrand[-1])
 
-    # I = np.sum(dat[:, 2:4], 1)
-    I = sirs_dat[:, 1]
+        A2 = np.exp(-integrand) * (k0 + k1 * I[0:(t+1)]) * TS
+        A2 = A2.sum()
 
-    integrand = np.cumsum(k3 + k2 * I[0:(t+1)]) * TS
+        return A1 * A2
 
-    A1 = np.exp(integrand[-1])
+    def get_B(t):
+        # if t == 0:
+        #     return 0
 
-    A2 = np.exp(-integrand) * (k0 + k1 * I[0:(t+1)]) * TS
-    A2 = A2.sum()
+        I = np.sum(dat[:, 2:4], 1)
 
-    return A1 * A2
+        c = k3 + k2*I[0]
+        k = k0 + k1*I[0]
 
+        return k/c*(np.exp(c*t_range[t]) - 1)
 
-def get_B(t):
-    # if t == 0:
-    #     return 0
+    B = []
+    B2 = []
+    ttt = 8000
 
-    I = np.sum(dat[:, 2:4], 1)
+    for t in range(ttt):
+        B.append(get_B(t))
+    for t in range(ttt):
+        B2.append(get_B2(t))
 
-    c = k3 + k2*I[0]
-    k = k0 + k1*I[0]
+    a0 = dat[0, 2:4].sum()
+    a1 = (model.transmission * (1 - a0) - 1/model.infectious_period) * a0
+    a2 = model.transmission * (1-a0) * a0 * (model.transmission * (1 - 2 * a0) - (model.susc_mask_efficacy +
+                                                                                  model.inf_mask_efficacy) * (model.mask_fear * a0 + model.mask_const)) - gamma * a1
+    a2 = a2/2
 
-    return k/c*(np.exp(c*t_range[t]) - 1)
+    def get_B_linear(t):
 
+        int_1, err = quad(lambda x: k3 + k2 * (a0 + a1 * x), 0, t)
 
-B = []
-B2 = []
-ttt = 8000
+        def inner_int(zeta):
+            int_2, err = quad(lambda x: k3 + k2 * (a0 + a1 * x), 0, zeta)
 
-for t in range(ttt):
-    B.append(get_B(t))
-for t in range(ttt):
-    B2.append(get_B2(t))
+            return np.exp(-int_2) * (k0 + k1 * (a0 + a1 * zeta))
 
+        int_3, err = quad(inner_int, 0, t)
 
-a0 = dat[0, 2:4].sum()
-a1 = (model.transmission * (1 - a0) - 1/model.infectious_period) * a0
-a2 = model.transmission * (1-a0) * a0 * (model.transmission * (1 - 2 * a0) - (model.susc_mask_efficacy +
-                                                                              model.inf_mask_efficacy) * (model.mask_fear * a0 + model.mask_const)) - gamma * a1
-a2 = a2/2
+        return np.exp(int_1) * int_3
 
+    def get_B_quad(t):
 
-def get_B_linear(t):
+        int_1, err = quad(lambda x: k3 + k2 * (a0 + a1 * x + a2 * x**2), 0, t)
 
-    int_1, err = quad(lambda x: k3 + k2 * (a0 + a1 * x), 0, t)
-
-    def inner_int(zeta):
-        int_2, err = quad(lambda x: k3 + k2 * (a0 + a1 * x), 0, zeta)
-
-        return np.exp(-int_2) * (k0 + k1 * (a0 + a1 * zeta))
-
-    int_3, err = quad(inner_int, 0, t)
-
-    return np.exp(int_1) * int_3
-
-
-def get_B_quad(t):
-
-    int_1, err = quad(lambda x: k3 + k2 * (a0 + a1 * x + a2 * x**2), 0, t)
-
-    def inner_int(zeta):
-        int_2, err = quad(lambda x: k3 + k2 *
-                          (a0 + a1 * x + a2 * x**2), 0, zeta)
-
-        return np.exp(-int_2) * (k0 + k1 * (a0 + a1 * zeta + a2 * zeta**2))
-
-    int_3, err = quad(inner_int, 0, t)
-
-    return np.exp(int_1) * int_3
-
-
-def get_B_exp(t):
-
-    int_1, err = quad(lambda x: k3 + k2 * (a0 *
-                      np.exp((model.transmission - 1/model.infectious_period) * x)), 0, t)
-
-    def inner_int(zeta):
-        int_2, err = quad(lambda x: k3 + k2 *
-                          (a0*np.exp((model.transmission - 1/model.infectious_period) * x)), 0, zeta)
-
-        return np.exp(-int_2) * (k0 + k1 * (a0*np.exp((model.transmission - 1/model.infectious_period) * zeta)))
-
-    int_3, err = quad(inner_int, 0, t)
-
-    return np.exp(int_1) * int_3
-
-
-def get_B_cosh(t):
-
-    def I_est(zeta):
-        gamma = 1/model.infectious_period
-        a = np.sqrt((S0_n * R0 - 1)**2 + 2*S0_n*I0_n*R0**2)
-
-        phi = math.atanh((S0_n * R0 - 1)/a)
-
-        ANS = a**2 / (2 * S0_n * R0**2) * \
-            (math.cosh(a*gamma*zeta/2 - phi))**(-2)
-
-        return ANS
-
-    int_1, err = quad(lambda x: k3 + k2 * I_est(x), 0, t)
-
-    def inner_int(zeta):
-        int_2, err = quad(lambda x: k3 + k2 * I_est(x), 0, zeta)
-
-        return np.exp(-int_2) * (k0 + k1 * I_est(zeta))
-
-    int_3, err = quad(inner_int, 0, t)
-
-    return np.exp(int_1) * int_3
-
-
-B3 = []
-B4 = []
-B5 = []
-B6 = []
-for t in t_range[0:ttt]:
-    B3.append(get_B_linear(t))
-    B4.append(get_B_quad(t))
-    # B5.append(get_B_exp(t))
-    B6.append(get_B_cosh(t))
-
-# %%
-
-t_first_plot = 45
-
-plt.figure()
-plt.title("Estimate of behavioural equation\n B_0 = 10^{-6}, I_0 = 0.001")
-plt.plot(t_range[0:t_first_plot], B[0:t_first_plot],
-         "b", label="estimate constant")
-plt.plot(t_range[0:t_first_plot], B2[0:t_first_plot],
-         "g", label="estimate SIRS")
-plt.plot(t_range[0:t_first_plot], B3[0:t_first_plot],
-         "y", label="estimate linear")
-plt.plot(t_range[0:t_first_plot], B4[0:t_first_plot],
-         "orange", label="estimate quad")
-# plt.plot(t_range[0:t_first_plot], B5[0:t_first_plot],
-# "purple", label="estimate exp")
-plt.plot(t_range[0:t_first_plot], B6[0:t_first_plot],
-         "brown", label="estimate K&R")
-plt.plot(t_range[0:t_first_plot], np.sum(
-    dat[0:t_first_plot, 0:5:2], 1), "r:", label="truth")
-# plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
-plt.xlabel("time")
-plt.ylabel("Proportion performing behaviour")
-plt.legend()
-plt.show()
-
-plt.figure()
-plt.title(
-    "Estimate of behavioural equation for long time\n B_0 = 10^{-6}, I_0 = 0.001")
-plt.plot(t_range[0:ttt], B, "b", label="estimate constant")
-plt.plot(t_range[0:ttt], B2, "g", label="estimate SIRS")
-# plt.plot(t_range[0:ttt], B3[0:ttt], "y", label="estimate linear")
-# plt.plot(t_range[0:ttt], B4[0:ttt], "orange", label="estimate quad")
-plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 0:5:2], 1), "r", label="truth")
-# plt.plot(t_range[0:ttt], B5[0:ttt], "purple", label="estimate exp")
-# plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
-plt.plot(t_range[0:ttt], B6[0:ttt],
-         "brown", label="estimate K&R")
-plt.xlabel("time")
-plt.ylabel("Proportion performing behaviour")
-plt.legend()
-plt.show()
-
-plt.figure()
-plt.title(
-    "Estimate of behavioural equation for super small time\n B_0 = 10^{-6}, I_0 = 0.001")
-plt.plot(t_range[0:10], B[0:10], "b", label="estimate constant")
-plt.plot(t_range[0:10], B2[0:10], "g", label="estimate SIRS")
-plt.plot(t_range[0:10], B3[0:10], "y", label="estimate linear")
-plt.plot(t_range[0:10], B4[0:10], "orange", label="estimate quad")
-# plt.plot(t_range[0:10], B5[0:10], "purple", label="estimate exp")
-plt.plot(t_range[0:10], B6[0:10],
-         "brown", label="estimate K&R")
-plt.plot(t_range[0:10], np.sum(dat[0:10, 0:5:2], 1), "r:", label="truth")
-# plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
-plt.xlabel("time")
-plt.ylabel("Proportion performing behaviour")
-plt.legend()
-plt.show()
+        def inner_int(zeta):
+            int_2, err = quad(lambda x: k3 + k2 *
+                              (a0 + a1 * x + a2 * x**2), 0, zeta)
+
+            return np.exp(-int_2) * (k0 + k1 * (a0 + a1 * zeta + a2 * zeta**2))
+
+        int_3, err = quad(inner_int, 0, t)
+
+        return np.exp(int_1) * int_3
+
+    def get_B_exp(t):
+
+        int_1, err = quad(lambda x: k3 + k2 * (a0 *
+                          np.exp((model.transmission - 1/model.infectious_period) * x)), 0, t)
+
+        def inner_int(zeta):
+            int_2, err = quad(lambda x: k3 + k2 *
+                              (a0*np.exp((model.transmission - 1/model.infectious_period) * x)), 0, zeta)
+
+            return np.exp(-int_2) * (k0 + k1 * (a0*np.exp((model.transmission - 1/model.infectious_period) * zeta)))
+
+        int_3, err = quad(inner_int, 0, t)
+
+        return np.exp(int_1) * int_3
+
+    def get_B_cosh(t):
+
+        def I_est(zeta):
+            gamma = 1/model.infectious_period
+            a = np.sqrt((S0_n * R0 - 1)**2 + 2*S0_n*I0_n*R0**2)
+
+            phi = math.atanh((S0_n * R0 - 1)/a)
+
+            ANS = a**2 / (2 * S0_n * R0**2) * \
+                (math.cosh(a*gamma*zeta/2 - phi))**(-2)
+
+            return ANS
+
+        int_1, err = quad(lambda x: k3 + k2 * I_est(x), 0, t)
+
+        def inner_int(zeta):
+            int_2, err = quad(lambda x: k3 + k2 * I_est(x), 0, zeta)
+
+            return np.exp(-int_2) * (k0 + k1 * I_est(zeta))
+
+        int_3, err = quad(inner_int, 0, t)
+
+        return np.exp(int_1) * int_3
+
+    B3 = []
+    B4 = []
+    B5 = []
+    B6 = []
+    for t in t_range[0:ttt]:
+        B3.append(get_B_linear(t))
+        B4.append(get_B_quad(t))
+        # B5.append(get_B_exp(t))
+        B6.append(get_B_cosh(t))
+
+    # %%
+
+    t_first_plot = 45
+
+    plt.figure()
+    plt.title("Estimate of behavioural equation\n B_0 = 10^{-6}, I_0 = 0.001")
+    plt.plot(t_range[0:t_first_plot], B[0:t_first_plot],
+             "b", label="estimate constant")
+    plt.plot(t_range[0:t_first_plot], B2[0:t_first_plot],
+             "g", label="estimate SIRS")
+    plt.plot(t_range[0:t_first_plot], B3[0:t_first_plot],
+             "y", label="estimate linear")
+    plt.plot(t_range[0:t_first_plot], B4[0:t_first_plot],
+             "orange", label="estimate quad")
+    # plt.plot(t_range[0:t_first_plot], B5[0:t_first_plot],
+    # "purple", label="estimate exp")
+    plt.plot(t_range[0:t_first_plot], B6[0:t_first_plot],
+             "brown", label="estimate K&R")
+    plt.plot(t_range[0:t_first_plot], np.sum(
+        dat[0:t_first_plot, 0:5:2], 1), "r:", label="truth")
+    # plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
+    plt.xlabel("time")
+    plt.ylabel("Proportion performing behaviour")
+    plt.legend()
+    plt.show()
+
+    plt.figure()
+    plt.title(
+        "Estimate of behavioural equation for long time\n B_0 = 10^{-6}, I_0 = 0.001")
+    plt.plot(t_range[0:ttt], B, "b", label="estimate constant")
+    plt.plot(t_range[0:ttt], B2, "g", label="estimate SIRS")
+    # plt.plot(t_range[0:ttt], B3[0:ttt], "y", label="estimate linear")
+    # plt.plot(t_range[0:ttt], B4[0:ttt], "orange", label="estimate quad")
+    plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 0:5:2], 1), "r", label="truth")
+    # plt.plot(t_range[0:ttt], B5[0:ttt], "purple", label="estimate exp")
+    # plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
+    plt.plot(t_range[0:ttt], B6[0:ttt],
+             "brown", label="estimate K&R")
+    plt.xlabel("time")
+    plt.ylabel("Proportion performing behaviour")
+    plt.legend()
+    plt.show()
+
+    plt.figure()
+    plt.title(
+        "Estimate of behavioural equation for super small time\n B_0 = 10^{-6}, I_0 = 0.001")
+    plt.plot(t_range[0:10], B[0:10], "b", label="estimate constant")
+    plt.plot(t_range[0:10], B2[0:10], "g", label="estimate SIRS")
+    plt.plot(t_range[0:10], B3[0:10], "y", label="estimate linear")
+    plt.plot(t_range[0:10], B4[0:10], "orange", label="estimate quad")
+    # plt.plot(t_range[0:10], B5[0:10], "purple", label="estimate exp")
+    plt.plot(t_range[0:10], B6[0:10],
+             "brown", label="estimate K&R")
+    plt.plot(t_range[0:10], np.sum(dat[0:10, 0:5:2], 1), "r:", label="truth")
+    # plt.plot(t_range[0:ttt], np.sum(dat[0:ttt, 2:4], 1), "y", label="I")
+    plt.xlabel("time")
+    plt.ylabel("Proportion performing behaviour")
+    plt.legend()
+    plt.show()
 
 
 # %%
