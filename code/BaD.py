@@ -101,6 +101,8 @@ class bad(object):
         Y : array
             rate of change of population compartments at time t.
         """
+
+        # NB: Put in parameter checks
         Y = np.zeros((len(PP)))
         P = PP[0:6].sum()
 
@@ -177,7 +179,9 @@ class bad(object):
                             t_span=[t_start, t_end],
                             y0=IC,
                             t_eval=t_range,
-                            events=events)
+                            events=events,
+                            # rtol=1e-7, atol=1e-14
+                            )
             self.results = res.y.T
         else:
             res = solve_ivp(fun=self.odes,
@@ -302,6 +306,8 @@ class bad(object):
             print("Model has not been run")
             return np.nan
 
+# %% functions external to class
+
 
 def early_behaviour_dynamics(model: bad, method="exp"):
     """
@@ -347,6 +353,431 @@ def early_behaviour_dynamics(model: bad, method="exp"):
 
     return bt + it
 
+# todo: Can I implement the taylor coefficients automatically?
+
+
+def calculate_F_m(t, M, model):
+    k3 = model.B_social - model.N_social - model.N_fear - model.N_const
+
+    if M == 0:
+        return (np.exp(k3 * t) - 1)/k3
+    else:
+        return (M/k3) * calculate_F_m(t=t, M=M-1, model=model) - (t**M)/k3
+
+# The next set of functions are aimed towards calculating the steady states of the system
+
+
+def get_B_a_w(I, params):
+    """
+    Cacluate the steady state of behaviour, and alpha and omega values at steady state when I is known.
+
+    Parameters
+    ----------
+    I : float
+        Desired prevalence of disease at equilibrium
+    params : dict
+        dictionary of model parameters.  Must include:
+                "infectious_period" (1/gamma)
+                "immune_period" (1/nu)
+                "susc_B_efficacy" (c)
+                "N_social" (a1)
+                "N_fear" (a2)
+                "N_const" (a3)
+                "B_social" (w1)
+                "B_fear" (w2)
+                "B_const" (w3)
+        Optional parameters are:
+                "transmission" (beta)
+                "inf_B_efficacy" (p)
+
+    Returns
+    -------
+    B : float
+        Proportion of the population performing the behaviour at equilibrium
+    a : float
+        alpha transition value at equilibrium (a1 * N + a2 * (1 - I) + a3)
+    w : float
+        omega transition value at equilibrium (w1 * B + w2 * I + w3)
+    """
+
+    nu = 1/params["immune_period"]
+    g = 1/params["infectious_period"]
+
+    assert not (I > nu/(g + nu)), "invalid choice of I"
+
+    if I < 1e-8:
+        I = 0
+
+    D = params["N_fear"] * (1-I) + params["N_const"] + \
+        params["B_fear"] * I + params["B_const"]
+    C = params["B_social"] - params["N_social"]
+
+    if C == 0:
+        N = (D - (params["B_fear"] * I + params["B_const"])) / D
+    else:
+        N = ((C + D) - np.sqrt((C + D)**2 - 4 * C *
+             (D - (params["B_fear"] * I + params["B_const"])))) / (2 * C)
+    B = 1 - N
+    a = params["N_social"] * (1-B) + params["N_fear"] * \
+        (1 - I) + params["N_const"]
+    w = params["B_social"] * B + params["B_fear"] * I + params["B_const"]
+
+    return B, a, w
+
+
+def get_R_S(I, params):
+    """
+    Cacluate the steady state of R ans S when I is known.
+
+    Parameters
+    ----------
+    I : float
+        Desired prevalence of disease at equilibrium
+    params : dict
+        dictionary of model parameters.  Must include:
+                "infectious_period" (1/gamma)
+                "immune_period" (1/nu)
+                "susc_B_efficacy" (c)
+                "N_social" (a1)
+                "N_fear" (a2)
+                "N_const" (a3)
+                "B_social" (w1)
+                "B_fear" (w2)
+                "B_const" (w3)
+        Optional parameters are:
+                "transmission" (beta)
+                "inf_B_efficacy" (p)
+
+    Returns
+    -------
+    R : float
+        Proportion of the population recovered at equilibrium
+    S : float
+        Proportion of the population susceptible at equilibrium
+    """
+    g = 1/params["infectious_period"]
+    nu = 1/params["immune_period"]
+    R = g/nu * I
+    S = 1 - I - R
+    return R, S
+
+
+def get_lambda(S, I, B, a, w, params):
+    """
+    Calculate the force of infection at equilibrium
+
+    Parameters
+    ----------
+    S : float
+        Proportion of the population susceptible at equilibrium
+    I : float
+        Desired prevalence of disease at equilibrium
+    B : float
+        Proportion of the population performing the behaviour at equilibrium
+    a : float
+        alpha transition value at equilibrium (a1 * N + a2 * (1 - I) + a3)
+    w : float
+        omega transition value at equilibrium (w1 * B + w2 * I + w3)
+    params : dict
+        dictionary of model parameters.  Must include:
+                "infectious_period" (1/gamma)
+                "immune_period" (1/nu)
+                "susc_B_efficacy" (c)
+                "N_social" (a1)
+                "N_fear" (a2)
+                "N_const" (a3)
+                "B_social" (w1)
+                "B_fear" (w2)
+                "B_const" (w3)
+        Optional parameters are:
+                "transmission" (beta)
+                "inf_B_efficacy" (p)
+
+    Returns
+    -------
+    lam : float
+        Force of infection at equilibrium
+    """
+
+    N = 1-B
+
+    g = 1/params["infectious_period"]
+    v = 1/params["immune_period"]
+    c = params["susc_B_efficacy"]
+
+    if c == 0:
+        lam = g * I / S
+        return lam
+
+    A = (a + w + g + v) * (1 - c) * S
+
+    C = -(w + v + a) * (a + w + g) * g * I
+
+    B = (a + w + g) * ((w + v) * (1-c) + a) * S - \
+        ((a + w + g) * g + v * (g + c * a)) * I + v * (a + w + g) * N
+
+    if (A == 0) or (c == 1):
+        lam = -C/B
+    else:
+        lam = (-B + np.sqrt(B**2 - 4 * A * C)) / (2 * A)
+
+    return lam
+
+
+def get_Sb(lam, S, I, B, a, w, params):
+    """
+    Calculate the proportion of the population in Sb at equilibrium
+
+    Parameters
+    ----------
+    S : float
+        Proportion of the population susceptible at equilibrium
+    I : float
+        Desired prevalence of disease at equilibrium
+    B : float
+        Proportion of the population performing the behaviour at equilibrium
+    a : float
+        alpha transition value at equilibrium (a1 * N + a2 * (1 - I) + a3)
+    w : float
+        omega transition value at equilibrium (w1 * B + w2 * I + w3)
+    params : dict
+        dictionary of model parameters.  Must include:
+                "infectious_period" (1/gamma)
+                "immune_period" (1/nu)
+                "susc_B_efficacy" (c)
+                "N_social" (a1)
+                "N_fear" (a2)
+                "N_const" (a3)
+                "B_social" (w1)
+                "B_fear" (w2)
+                "B_const" (w3)
+        Optional parameters are:
+                "transmission" (beta)
+                "inf_B_efficacy" (p)
+
+    Returns
+    -------
+    sb : float
+        Proportion of the population in Sb at equilibrium
+    """
+
+    g = 1/params["infectious_period"]
+    v = 1/params["immune_period"]
+    c = params["susc_B_efficacy"]
+
+    if c == 0:
+        detA = (lam + a + w + v) * (a + w + g) + lam*v
+        sb = (a + w + g) * (w * S + v * B) - w * v * I
+        sb /= detA
+    else:
+        sb = (lam*S - g * I)/(c * lam)
+    return sb
+
+
+def get_In(lam, S, I, B, a, w, params):
+    """
+    Calculate the proportion of the population in In at equilibrium
+
+    Parameters
+    ----------
+    S : float
+        Proportion of the population susceptible at equilibrium
+    I : float
+        Desired prevalence of disease at equilibrium
+    B : float
+        Proportion of the population performing the behaviour at equilibrium
+    a : float
+        alpha transition value at equilibrium (a1 * N + a2 * (1 - I) + a3)
+    w : float
+        omega transition value at equilibrium (w1 * B + w2 * I + w3)
+    params : dict
+        dictionary of model parameters.  Must include:
+                "infectious_period" (1/gamma)
+                "immune_period" (1/nu)
+                "susc_B_efficacy" (c)
+                "N_social" (a1)
+                "N_fear" (a2)
+                "N_const" (a3)
+                "B_social" (w1)
+                "B_fear" (w2)
+                "B_const" (w3)
+        Optional parameters are:
+                "transmission" (beta)
+                "inf_B_efficacy" (p)
+
+    Returns
+    -------
+    In : float
+        Proportion of the population in In at equilibrium
+    """
+
+    g = 1/params["infectious_period"]
+    v = 1/params["immune_period"]
+    c = params["susc_B_efficacy"]
+
+    if c == 0:
+        detA = (lam + a + w + v) * (a + w + g) + lam*v
+        Ib = lam * (w*S + v*B) + (lam + a + w + v) * w * I
+        Ib /= detA
+        In = I - Ib
+    else:
+        In = (g + c * a) * \
+            I - (1 - c) * lam * S
+        In = In/(c * (a + w + g))
+
+    return In
+
+
+def get_steady_states(I, params):
+    """
+    Calculate the steady state vector for a given disease prevalence and set of parameters.  
+    Also returns the force of infection at equilibrium.
+    Parameters
+    ----------
+    I : float
+        Desired prevalence of disease at equilibrium
+    params : dict
+        dictionary of model parameters.  Must include:
+                "infectious_period" (1/gamma)
+                "immune_period" (1/nu)
+                "susc_B_efficacy" (c)
+                "N_social" (a1)
+                "N_fear" (a2)
+                "N_const" (a3)
+                "B_social" (w1)
+                "B_fear" (w2)
+                "B_const" (w3)
+        Optional parameters are:
+                "transmission" (beta)
+                "inf_B_efficacy" (p)
+
+    Returns
+    -------
+    ss : numpy.array
+        Vector of steady states of the form [Sn, Sb, In, Ib, Rn, Rb]
+    lam : float
+        For of infection at equilibrium.
+
+    """
+
+    B, a, w = get_B_a_w(I, params)
+
+    if I <= 0:
+        lam = 0
+        return np.array([1-B, B, 0.0, 0.0, 0.0, 0.0]), lam
+
+    R, S = get_R_S(I, params)
+
+    lam = get_lambda(S, I, B, a, w, params)
+
+    Sb = get_Sb(lam, S, I, B, a, w, params)
+    Sn = S - Sb
+
+    In = get_In(lam, S, I, B, a, w, params)
+    Ib = I - In
+
+    Rn = (1-B) - Sn - In
+
+    Rb = B - Sb - Ib
+
+    ss = np.array([Sn, Sb, In, Ib, Rn, Rb])
+
+    return ss, lam
+
+
+def solve_I(i, params):
+    """
+    Function to numerically find the disease prevalence at equilibrium for a given set
+    of model parameters.  Designed to be used in conjunction with fsolve.
+
+    Parameters
+    ----------
+    i : float
+        Estimated disease prevalence at equilibrium.
+    params : dict
+        dictionary of model parameters.  Must include:
+                "transmission" (beta)
+                "infectious_period" (1/gamma)
+                "immune_period" (1/nu)
+                "susc_B_efficacy" (c)
+                "inf_B_efficacy" (p)
+                "N_social" (a1)
+                "N_fear" (a2)
+                "N_const" (a3)
+                "B_social" (w1)
+                "B_fear" (w2)
+                "B_const" (w3)
+    Returns
+    -------
+    res : float
+        The difference between the model predicted force of infection (assuming I* = i) and the theoretical
+        lambda = beta * (I - p Ib).
+    """
+
+    assert "transmission" in params.keys(), "define transmission"
+
+    assert "inf_B_efficacy" in params.keys(), "define inf_B_efficacy"
+
+    B, a, w = get_B_a_w(i, params)
+
+    R, S = get_R_S(i, params)
+
+    lam = get_lambda(S, i, B, a, w, params)
+
+    In = get_In(lam, S, i, B, a, w, params)
+    Ib = i - In
+
+    res = params["transmission"]*(i - params["inf_B_efficacy"] * Ib) - lam
+
+    return res
+
+
+def find_ss(params):
+    """
+    Calculate the steady states of the system for a given set of model parameters.  We first numerically
+    solve for the disease prevalence I, then use I to find all other steady states.
+
+    Parameters
+    ----------
+    params : dict
+        dictionary of model parameters.  Must include:
+                "transmission" (beta)
+                "infectious_period" (1/gamma)
+                "immune_period" (1/nu)
+                "susc_B_efficacy" (c)
+                "inf_B_efficacy" (p)
+                "N_social" (a1)
+                "N_fear" (a2)
+                "N_const" (a3)
+                "B_social" (w1)
+                "B_fear" (w2)
+                "B_const" (w3)
+
+    Returns
+    -------
+    ss : numpy.array
+        Vector of steady states of the form [Sn, Sb, In, Ib, Rn, Rb]
+    lam : float
+        For of infection at equilibrium.
+    Istar : float
+        Estimated disease prevalence at equilibrium
+    """
+
+    nu = 1/params["immune_period"]
+    g = 1/params["infectious_period"]
+
+    init_i = nu/(g + nu) - 1e-3
+
+    Istar = fsolve(solve_I, x0=[init_i], args=(params))
+
+    if Istar[0] < 1e-8:
+        Istar[0] = 0
+
+    ss, lam = get_steady_states(Istar[0], params)
+
+    return ss, lam, Istar[0]
+
+
 # %%
 
 
@@ -355,6 +786,9 @@ if __name__ == "__main__":
     Ib0, Rb0, Rn0 = np.zeros(3)
     Sb0 = 1e-6  # 1 in a million seeded with behaviour
     In0 = 1e-6  # 1 in a million seeded with disease
+    # Ib0, Rb0, Rn0 = np.zeros(3)
+    # Sb0 = 1-0.6951793156273507  # 1 in a million seeded with behaviour
+    # In0 = Ib0 = 1e-6  # 1 in a million seeded with disease
 
     Sn0 = P - Sb0 - Ib0 - Rb0 - In0 - Rn0
 
@@ -377,10 +811,22 @@ if __name__ == "__main__":
     cust_params["B_fear"] = w1
     cust_params["B_const"] = 0.01
     cust_params["N_const"] = 0.01
+    # cust_params["transmission"] = R0*gamma
+    # cust_params["infectious_period"] = 1/gamma
+    # cust_params["immune_period"] = 240
+    # cust_params["av_lifespan"] = 0  # Turning off demography
+    # cust_params["susc_B_efficacy"] = 0.8
+    # cust_params["inf_B_efficacy"] = 0.4
+    # cust_params["N_social"] = 0.
+    # cust_params["N_fear"] = 0
+    # cust_params["B_social"] = 0.0
+    # cust_params["B_fear"] = 0
+    # cust_params["B_const"] = 0.0
+    # cust_params["N_const"] = 0.0
 
     M1 = bad(**cust_params)
 
-    M1.run(IC=PP, t_start=0, t_end=365, t_step=0.1)
+    M1.run(IC=PP, t_start=0, t_end=900, t_step=1)
 
     M1.endemic_behaviour()
 
@@ -388,12 +834,12 @@ if __name__ == "__main__":
 
     plt.figure()
     plt.title("Dynamics of each strata")
-    plt.plot(M1.results[:, 0], "y", label="Sn")
-    plt.plot(M1.results[:, 1], "y:", label="Sb")
-    plt.plot(M1.results[:, 2], "g", label="In")
-    plt.plot(M1.results[:, 3], "g:", label="Ib")
-    plt.plot(M1.results[:, 4], "r", label="Rn")
-    plt.plot(M1.results[:, 5], "r:", label="Rb")
+    plt.plot(M1.t_range, M1.results[:, 0], "y", label="Sn")
+    plt.plot(M1.t_range, M1.results[:, 1], "y:", label="Sb")
+    plt.plot(M1.t_range, M1.results[:, 2], "g", label="In")
+    plt.plot(M1.t_range, M1.results[:, 3], "g:", label="Ib")
+    plt.plot(M1.t_range, M1.results[:, 4], "r", label="Rn")
+    plt.plot(M1.t_range, M1.results[:, 5], "r:", label="Rb")
     plt.legend()
     plt.xlabel("Time")
     plt.ylabel("Proportion")
@@ -401,9 +847,9 @@ if __name__ == "__main__":
 
     plt.figure()
     plt.title("Disease dynamics")
-    plt.plot(M1.get_S(), "y", label="S")
-    plt.plot(M1.get_I(), "g", label="I")
-    plt.plot(P-M1.get_S()-M1.get_I(), "r", label="R")
+    # plt.plot(M1.t_range, M1.get_S(), "y", label="S")
+    plt.plot(M1.t_range, M1.get_I(), "g", label="I")
+    # plt.plot(M1.t_range, P-M1.get_S()-M1.get_I(), "r", label="R")
     plt.legend()
     plt.xlabel("Time")
     plt.ylabel("Proportion")
@@ -445,4 +891,71 @@ if __name__ == "__main__":
              "r:", label="exponential estimate")
     plt.xlabel("Time")
     plt.legend()
+    plt.show()
+
+# %%
+    ss, _, _ = find_ss(cust_params)
+
+    print(
+        f"Numeric Sn* = {M1.results[-1, 0]}, estimated Sn* = {ss[0]}, absolute difference = {np.abs(M1.results[-1, 0] - ss[0])}")
+    print(
+        f"Numeric Sb* = {M1.results[-1, 1]}, estimated Sb* = {ss[1]}, absolute difference = {np.abs(M1.results[-1, 1] - ss[1])}")
+    print(
+        f"Numeric In* = {M1.results[-1, 2]}, estimated In* = {ss[2]}, absolute difference = {np.abs(M1.results[-1, 2] - ss[2])}")
+    print(
+        f"Numeric Ib* = {M1.results[-1, 3]}, estimated Ib* = {ss[3]}, absolute difference = {np.abs(M1.results[-1, 3] - ss[3])}")
+    print(
+        f"Numeric Rn* = {M1.results[-1, 4]}, estimated Rn* = {ss[4]}, absolute difference = {np.abs(M1.results[-1, 4] - ss[4])}")
+    print(
+        f"Numeric Rb* = {M1.results[-1, 5]}, estimated Rb* = {ss[5]}, absolute difference = {np.abs(M1.results[-1, 5] - ss[5])}")
+
+    print("\n")
+
+    print(
+        f"Numeric S* = {M1.results[-1, [0,1]].sum()}, estimated S* = {ss[[0, 1]].sum()}, absolute difference = {np.abs(M1.results[-1, [0, 1]].sum() - ss[[0,1]].sum())}")
+    print(
+        f"Numeric I* = {M1.results[-1, [2,3]].sum()}, estimated I* = {ss[[2, 3]].sum()}, absolute difference = {np.abs(M1.results[-1, [2, 3]].sum() - ss[[2,3]].sum())}")
+    print(
+        f"Numeric R* = {M1.results[-1, [4,5]].sum()}, estimated R* = {ss[[4, 5]].sum()}, absolute difference = {np.abs(M1.results[-1, [4, 5]].sum() - ss[[4,5]].sum())}")
+
+    print("\n")
+
+    print(f"Numeric B* = {M1.results[-1, [1, 3, 5]].sum()}, estimated B* = {ss[[1, 3, 5]].sum()}, absolute difference = {np.abs(M1.results[-1, [1, 3, 5]].sum() - ss[[1, 3, 5]].sum())}")
+
+
+# %%
+    plt.figure()
+    plt.title("Dynamics of susceptibles with predicted steady states")
+    plt.plot(M1.t_range, M1.results[:, 0], "y", label="Sn")
+    plt.plot(M1.t_range, M1.results[:, 1], "purple", label="Sb")
+    plt.plot([M1.t_range[0], M1.t_range[-1]], [ss[0], ss[0]], "y:", label="Sn")
+    plt.plot([M1.t_range[0], M1.t_range[-1]], [ss[1], ss[1]],
+             "purple", linestyle=":", label="Sb")
+    plt.legend()
+    plt.xlabel("Time")
+    plt.ylabel("Proportion")
+    plt.show()
+
+    plt.figure()
+    plt.title("Dynamics of infecteds with predicted steady states")
+    plt.plot(M1.t_range, M1.results[:, 2], "r", label="In")
+    plt.plot(M1.t_range, M1.results[:, 3], "orange", label="Ib")
+    plt.plot([M1.t_range[0], M1.t_range[-1]], [ss[2], ss[2]], "r:", label="In")
+    plt.plot([M1.t_range[0], M1.t_range[-1]], [ss[3], ss[3]],
+             "orange", linestyle=":", label="Ib")
+    plt.legend()
+    plt.xlabel("Time")
+    plt.ylabel("Proportion")
+    plt.show()
+
+    plt.figure()
+    plt.title("Dynamics of recovereds with predicted steady states")
+    plt.plot(M1.t_range, M1.results[:, 4], "b", label="Rn")
+    plt.plot(M1.t_range, M1.results[:, 5], "lightblue", label="Rb")
+    plt.plot([M1.t_range[0], M1.t_range[-1]], [ss[4], ss[4]], "b:", label="Rn")
+    plt.plot([M1.t_range[0], M1.t_range[-1]], [ss[5], ss[5]],
+             "lightblue", linestyle=":", label="Rb")
+    plt.legend()
+    plt.xlabel("Time")
+    plt.ylabel("Proportion")
     plt.show()
