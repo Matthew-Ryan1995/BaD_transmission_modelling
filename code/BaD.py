@@ -16,6 +16,8 @@ from scipy.integrate import quad, solve_ivp
 from scipy.optimize import fsolve
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as clrs
+import matplotlib.ticker as tkr
 import json
 import os
 import time
@@ -1157,8 +1159,6 @@ if __name__ == "__main__":
 # %%
     ss, _ = find_ss(cust_params)
 
-    # print("My attempt:\n")
-
     print(
         f"Numeric Sn* = {M1.results[-1, 0]}, estimated Sn* = {ss[0]}, absolute difference = {np.abs(M1.results[-1, 0] - ss[0])}")
     print(
@@ -1224,75 +1224,6 @@ if __name__ == "__main__":
     plt.show()
 
 
-# %%
-#     ss, _ = find_ss2(cust_params)
-
-#     print("Micks:\n")
-
-#     print(
-#         f"Numeric Sn* = {M1.results[-1, 0]}, estimated Sn* = {ss[0]}, absolute difference = {np.abs(M1.results[-1, 0] - ss[0])}")
-#     print(
-#         f"Numeric Sb* = {M1.results[-1, 1]}, estimated Sb* = {ss[1]}, absolute difference = {np.abs(M1.results[-1, 1] - ss[1])}")
-#     print(
-#         f"Numeric In* = {M1.results[-1, 2]}, estimated In* = {ss[2]}, absolute difference = {np.abs(M1.results[-1, 2] - ss[2])}")
-#     print(
-#         f"Numeric Ib* = {M1.results[-1, 3]}, estimated Ib* = {ss[3]}, absolute difference = {np.abs(M1.results[-1, 3] - ss[3])}")
-#     print(
-#         f"Numeric Rn* = {M1.results[-1, 4]}, estimated Rn* = {ss[4]}, absolute difference = {np.abs(M1.results[-1, 4] - ss[4])}")
-#     print(
-#         f"Numeric Rb* = {M1.results[-1, 5]}, estimated Rb* = {ss[5]}, absolute difference = {np.abs(M1.results[-1, 5] - ss[5])}")
-
-#     print("\n")
-
-#     print(
-#         f"Numeric S* = {M1.results[-1, [0,1]].sum()}, estimated S* = {ss[[0, 1]].sum()}, absolute difference = {np.abs(M1.results[-1, [0, 1]].sum() - ss[[0,1]].sum())}")
-#     print(
-#         f"Numeric I* = {M1.results[-1, [2,3]].sum()}, estimated I* = {ss[[2, 3]].sum()}, absolute difference = {np.abs(M1.results[-1, [2, 3]].sum() - ss[[2,3]].sum())}")
-#     print(
-#         f"Numeric R* = {M1.results[-1, [4,5]].sum()}, estimated R* = {ss[[4, 5]].sum()}, absolute difference = {np.abs(M1.results[-1, [4, 5]].sum() - ss[[4,5]].sum())}")
-
-#     print("\n")
-
-#     print(f"Numeric B* = {M1.results[-1, [1, 3, 5]].sum()}, estimated B* = {ss[[1, 3, 5]].sum()}, absolute difference = {np.abs(M1.results[-1, [1, 3, 5]].sum() - ss[[1, 3, 5]].sum())}")
-
-
-# # %%
-#     plt.figure()
-#     plt.title("Mick: Dynamics of susceptibles with predicted steady states")
-#     plt.plot(tt, M1.results[:, 0], "y", label="Sn")
-#     plt.plot(tt, M1.results[:, 1], "purple", label="Sb")
-#     plt.plot([tt[0], tt[-1]], [ss[0], ss[0]], "y:", label="Sn")
-#     plt.plot([tt[0], tt[-1]], [ss[1], ss[1]],
-#              "purple", linestyle=":", label="Sb")
-#     plt.legend()
-#     plt.xlabel("Time")
-#     plt.ylabel("Proportion")
-#     plt.show()
-
-#     plt.figure()
-#     plt.title("Mick: Dynamics of infecteds with predicted steady states")
-#     plt.plot(tt, M1.results[:, 2], "r", label="In")
-#     plt.plot(tt, M1.results[:, 3], "orange", label="Ib")
-#     plt.plot([tt[0], tt[-1]], [ss[2], ss[2]], "r:", label="In")
-#     plt.plot([tt[0], tt[-1]], [ss[3], ss[3]],
-#              "orange", linestyle=":", label="Ib")
-#     plt.legend()
-#     plt.xlabel("Time")
-#     plt.ylabel("Proportion")
-#     plt.show()
-
-#     plt.figure()
-#     plt.title("Mick: Dynamics of recovereds with predicted steady states")
-#     plt.plot(tt, M1.results[:, 4], "b", label="Rn")
-#     plt.plot(tt, M1.results[:, 5], "lightblue", label="Rb")
-#     plt.plot([tt[0], tt[-1]], [ss[4], ss[4]], "b:", label="Rn")
-#     plt.plot([tt[0], tt[-1]], [ss[5], ss[5]],
-#              "lightblue", linestyle=":", label="Rb")
-#     plt.legend()
-#     plt.xlabel("Time")
-#     plt.ylabel("Proportion")
-#     plt.show()
-
 # %% Create bifurcation plot alla Mick Roberts
 
     bifurc_params = dict()
@@ -1308,6 +1239,8 @@ if __name__ == "__main__":
     bifurc_params["B_fear"] = 0.5
     bifurc_params["B_const"] = 0.7
     bifurc_params["N_const"] = 0.9
+
+    # Different set of params
     # bifurc_params = dict()
     # bifurc_params["transmission"] = 1
     # bifurc_params["infectious_period"] = 1/0.4
@@ -1360,6 +1293,8 @@ if __name__ == "__main__":
 
 # %% Heat maps
 
+    epi_r0 = True  # Plot beta/gamma on x axis or not
+
     heat_map_params = dict()
     heat_map_params["transmission"] = 1
     heat_map_params["infectious_period"] = 1/1
@@ -1374,8 +1309,23 @@ if __name__ == "__main__":
     heat_map_params["B_const"] = 0.7
     heat_map_params["N_const"] = 0.9
 
+    # Different set of params
+    # heat_map_params = dict()
+    # heat_map_params["transmission"] = 1
+    # heat_map_params["infectious_period"] = 1/0.4
+    # heat_map_params["immune_period"] = 1/(8*30)
+    # heat_map_params["av_lifespan"] = 0  # Turning off demography
+    # heat_map_params["susc_B_efficacy"] = 0.4
+    # heat_map_params["inf_B_efficacy"] = 0.8
+    # heat_map_params["N_social"] = 0.5
+    # heat_map_params["N_fear"] = 0.0
+    # heat_map_params["B_social"] = 0.05 * 8
+    # heat_map_params["B_fear"] = 8
+    # heat_map_params["B_const"] = 0.01
+    # heat_map_params["N_const"] = 0.01
+
     epi_r0_range = np.arange(0.1, 8.1, step=0.1)
-    behav_r0_range = np.arange(0.1, 3.1,  step=0.1)
+    behav_r0_range = np.arange(0.1, 8.1,  step=0.1)
 
     xx, yy = np.meshgrid(epi_r0_range, behav_r0_range)
 
@@ -1390,31 +1340,25 @@ if __name__ == "__main__":
     for idx in range(len(r0_combos)):
         b = r0_combos[idx, 0]
         w = r0_combos[idx, 1]
-        bb = b * (1/heat_map_params["infectious_period"])
         ww = w * (heat_map_params["N_social"] +
                   heat_map_params["N_fear"] + heat_map_params["N_const"])
 
-        heat_map_params["transmission"] = bb
+        if epi_r0:
+            bb = b * (1/heat_map_params["infectious_period"])
+        else:
+            M3.update_params(**{"B_social": ww})
+            inter_r0 = M3.Rzero()
+            multi_val2 = inter_r0/M3.transmission
+            bb = b * (1/multi_val2)
+
         heat_map_params["B_social"] = ww
+        heat_map_params["transmission"] = bb
 
         ss, _ = find_ss(heat_map_params)
         ss_list.append(ss)
 
         M3.update_params(**{"transmission": bb, "B_social": ww})
         R0_list.append(M3.Rzero())
-    # for b in epi_r0_range:
-    #     for w in behav_r0_range:
-    #         bb = b * (1/heat_map_params["infectious_period"])
-    #         ww = w * (heat_map_params["N_social"] + heat_map_params["N_fear"] + heat_map_params["N_const"])
-
-    #         heat_map_params["transmission"] = bb
-    #         heat_map_params["B_social"] = ww
-
-    #         ss, _ = find_ss(heat_map_params)
-    #         ss_list.append(ss)
-
-    #         M3.update_params(**{"transmission":bb, "B_social":ww})
-    #         R0_list.append(M3.Rzero())
 
     def calc_B(X):
         xx = X[1]
@@ -1429,19 +1373,62 @@ if __name__ == "__main__":
     BB = list(map(calc_B, enumerate(ss_list)))
     II = list(map(calc_I, enumerate(ss_list)))
 
+    if epi_r0:
+        beta_vals = list()
+        for idx in range(len(r0_combos)):
+            b = r0_combos[idx, 0]
+            w = r0_combos[idx, 1]
+            bb = b * (1/heat_map_params["infectious_period"])
+            ww = w * (heat_map_params["N_social"] +
+                      heat_map_params["N_fear"] + heat_map_params["N_const"])
+
+            M3.update_params(**{"transmission": bb, "B_social": ww})
+
+            tmp = M3.Rzero()/bb
+
+            beta_vals.append(1/tmp)
+
+        new_R0 = np.array(beta_vals) * heat_map_params["infectious_period"]
+
+# %%
+    # vec_BB = np.array(II)
+    # stp = vec_BB[vec_BB.nonzero()[0]].ptp()/6
+    # lvls = np.arange(vec_BB[vec_BB.nonzero()[0]].min(),
+    #                  1 + stp, step=stp)
+    # lvls = np.concatenate(([0], lvls))
+
     plt.figure()
     plt.title("Steady state of behaviour")
-    plt.contourf(xx, yy, np.array(BB).reshape(xx.shape),  cmap=plt.cm.Blues)
-    plt.colorbar()
-    plt.xlabel("Epidemic R0")
+    plt.contourf(xx, yy, np.array(BB).reshape(xx.shape),
+                 # levels = lvls,
+                 cmap=plt.cm.Blues)
+    plt.colorbar(format=tkr.PercentFormatter(xmax=1, decimals=2))
+    if epi_r0:
+        plt.xlabel("Epidemic R0")
+        plt.plot(new_R0, r0_combos[:, 1], "k:")
+    else:
+        plt.xlabel("Behaviour affected R0")
     plt.ylabel("Behaviour R0")
     plt.show()
 
+    vec_II = np.array(II)
+    stp = vec_II[vec_II.nonzero()[0]].ptp()/6
+    lvls = np.arange(vec_II[vec_II.nonzero()[0]].min(),
+                     vec_II.max() + stp, step=stp)
+    lvls = np.concatenate(([0], lvls))
+
     plt.figure()
     plt.title("Steady state of Infection")
-    plt.contourf(xx, yy, np.array(II).reshape(xx.shape),  cmap=plt.cm.Reds)
-    plt.colorbar()
-    plt.xlabel("Epidemic R0")
+    plt.contourf(xx, yy, vec_II.reshape(xx.shape),
+                 levels=lvls, cmap=plt.cm.Reds)
+    # plt.plot(new_R0, r0_combos[:, 1], "k:")
+    plt.colorbar(format=tkr.PercentFormatter(xmax=1, decimals=2))
+    # plt.xlabel("Epidemic R0")
+    if epi_r0:
+        plt.xlabel("Epidemic R0")
+        plt.plot(new_R0, r0_combos[:, 1], "k:")
+    else:
+        plt.xlabel("Behaviour affected R0")
     plt.ylabel("Behaviour R0")
     plt.show()
 
@@ -1449,7 +1436,15 @@ if __name__ == "__main__":
     plt.title("Behaviour affected R0")
     plt.contourf(xx, yy, np.array(R0_list).reshape(
         xx.shape),  cmap=plt.cm.Greens)
+    # plt.plot(new_R0, r0_combos[:, 1], "k:")
     plt.colorbar()
-    plt.xlabel("Epidemic R0")
+    # plt.xlabel("Epidemic R0")
+    if epi_r0:
+        plt.xlabel("Epidemic R0")
+        plt.plot(new_R0, r0_combos[:, 1], "k:")
+    else:
+        plt.xlabel("Behaviour affected R0")
     plt.ylabel("Behaviour R0")
     plt.show()
+
+# %%
