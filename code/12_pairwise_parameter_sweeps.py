@@ -80,7 +80,7 @@ def parameter_sweep(parameter_code1, parameter_code2, sweep_params_input,
 def plot_stead_state_parameter_sweeps(parameter_code1, parameter_code2,
                                       xx, yy, r0_combos,
                                       R0_list, BB, II, orig_param_dict,
-                                      save=False):
+                                      save=False, contour_img=True):
     code_to_label = {
         "transmission": "beta",
         "infectious_period": "gamma_inv",
@@ -106,10 +106,24 @@ def plot_stead_state_parameter_sweeps(parameter_code1, parameter_code2,
     # Behaviour steady states
     plt.figure()
     plt.title(f"Steady state of behaviour: {lbl1} and {lbl2} sweep")
-    plt.contourf(xx, yy, np.array(BB).reshape(xx.shape),
-                 # levels = lvls,
-                 cmap=plt.cm.Blues)
-    plt.colorbar(format=tkr.PercentFormatter(xmax=1, decimals=2))
+    if contour_img:
+        plt.contourf(xx, yy, np.array(BB).reshape(xx.shape),
+                     # levels = lvls,
+                     cmap=plt.cm.Blues)
+        plt.colorbar(format=tkr.PercentFormatter(xmax=1, decimals=2))
+    else:
+        im = plt.imshow(np.array(BB).reshape(xx.shape),  cmap=plt.cm.Blues,
+                        origin='lower',
+                        extent=[xx.min(), xx.max(), yy.min(), yy.max()],
+                        aspect="auto")
+        ctr = plt.contour(xx, yy, np.array(BB).reshape(xx.shape),
+                          colors="black",
+                          alpha=0.5)
+        cbar = plt.colorbar(
+            im, format=tkr.PercentFormatter(xmax=1, decimals=2))
+        cbar_lvls = ctr.levels[1:-1]
+        cbar.add_lines(ctr)
+        cbar.set_ticks(cbar_lvls)
     plt.xlabel(lbl1)
     plt.ylabel(lbl2)
     if save:
@@ -119,21 +133,42 @@ def plot_stead_state_parameter_sweeps(parameter_code1, parameter_code2,
     else:
         plt.show()
 
-    vec_II = np.array(II)
-    full_rng = vec_II[vec_II.nonzero()[0]]
-    full_rng = full_rng[np.isfinite(full_rng)]
-    stp = full_rng.ptp()/6
-    lvls = np.arange(full_rng.min(),
-                     full_rng.max() + stp, step=stp)
-    lvls = np.concatenate(([0], lvls))
-
     plt.figure()
     plt.title(f"Steady state of Infection: {lbl1} and {lbl2} sweep")
-    plt.contourf(xx, yy, vec_II.reshape(xx.shape),
-                 levels=lvls, cmap=plt.cm.Reds)
-    # plt.plot(new_R0, r0_combos[:, 1], "k:")
-    plt.colorbar(format=tkr.PercentFormatter(xmax=1, decimals=2))
-    # plt.xlabel("Epidemic R0 (beta/gamma)")
+    if contour_img:
+        vec_II = np.array(II)
+        full_rng = vec_II[vec_II.nonzero()[0]]
+        full_rng = full_rng[np.isfinite(full_rng)]
+        stp = full_rng.ptp()/6
+        lvls = np.arange(full_rng.min(),
+                         full_rng.max() + stp, step=stp)
+        lvls = np.concatenate(([0], lvls))
+        plt.contourf(xx, yy, vec_II.reshape(xx.shape),
+                     levels=lvls, cmap=plt.cm.Reds)
+        # plt.plot(new_R0, r0_combos[:, 1], "k:")
+        plt.colorbar(format=tkr.PercentFormatter(xmax=1, decimals=2))
+    else:
+        vec_II = np.array(II)
+        full_rng = vec_II[vec_II.nonzero()[0]]
+        full_rng = full_rng[np.isfinite(full_rng)]
+        stp = full_rng.ptp()/6
+        lvls = np.arange(full_rng.min() + 5e-2,
+                         full_rng.max() + stp, step=stp)
+        # lvls = np.concatenate(([0], lvls))
+        # plt.xlabel("Epidemic R0 (beta/gamma)")
+        im = plt.imshow(vec_II.reshape(xx.shape),  cmap=plt.cm.Reds,
+                        origin='lower',
+                        extent=[xx.min(), xx.max(), yy.min(), yy.max()],
+                        aspect="auto", vmin=0)
+        ctr = plt.contour(xx, yy, vec_II.reshape(xx.shape),
+                          levels=lvls,
+                          colors="black", alpha=0.5)
+        # plt.plot(new_R0, r0_combos[:, 1], "k:")
+        cbar = plt.colorbar(
+            im, format=tkr.PercentFormatter(xmax=1, decimals=2))
+        cbar_lvls = ctr.levels[:-1]
+        cbar.add_lines(ctr)
+        cbar.set_ticks(cbar_lvls)
     plt.xlabel(lbl1)
     plt.ylabel(lbl2)
     if save:
@@ -198,7 +233,7 @@ R0_minmax = [0.1, 8]
 final_behav_R0_range = [0.1, 8]
 
 param_dict = {
-    "transmission": ([0.1, 8], 0.1),
+    # "transmission": ([0.1, 8], 0.1), # Essential done in 1 param sweeps
     "infectious_period": ([1, 14], 1),
     "immune_period": ([2 * 30, 8 * 30], 15),
     "susc_B_efficacy": ([0, 1], 0.05),
@@ -229,12 +264,45 @@ for i in range(full_len):
                                                              sweep_params_input=heat_map_params,
                                                              param_range_1=param_dict[kk1][0],
                                                              param_range_2=param_dict[kk2][0],
-                                                             step1=param_dict[kk2][1],
+                                                             step1=param_dict[kk1][1],
                                                              step2=param_dict[kk2][1])
+        if param_dict[kk1][1] > 0.2 or param_dict[kk2][1] > 0.2:
+            ctr_img = True
+        else:
+            ctr_img = False
         plot_stead_state_parameter_sweeps(parameter_code1=kk1,
                                           parameter_code2=kk2,
                                           xx=xx, yy=yy, r0_combos=r0_combos,
                                           R0_list=R0_list,
                                           BB=BB, II=II,
                                           orig_param_dict=heat_map_params,
-                                          save=save_figs)
+                                          save=save_figs,
+                                          contour_img=ctr_img)
+
+# %%
+# kk1 = "transmission"
+# kk2 = "immune_period"
+
+# xx, yy, r0_combos, R0_list, BB, II = parameter_sweep(parameter_code1="transmission",
+#                                                      parameter_code2="immune_period",
+#                                                      sweep_params_input=heat_map_params,
+#                                                      param_range_1=param_dict[kk1][0],
+#                                                      param_range_2=param_dict[kk2][0],
+#                                                      step1=param_dict[kk1][1],
+#                                                      step2=param_dict[kk2][1])
+# plot_stead_state_parameter_sweeps(parameter_code1=kk1,
+#                                   parameter_code2=kk2,
+#                                   xx=xx, yy=yy, r0_combos=r0_combos,
+#                                   R0_list=R0_list,
+#                                   BB=BB, II=II,
+#                                   orig_param_dict=heat_map_params,
+#                                   save=False)
+# # %%
+
+# plt.figure()
+# plt.contourf(xx, yy, np.array(II).reshape(xx.shape), cmap=plt.cm.Blues)
+# plt.show()
+
+# plt.figure()
+# plt.imshow(np.array(II).reshape(xx.shape), cmap=plt.cm.Blues)
+# plt.show()

@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['code/BaD.py', 'code/11_parameter_sweeps.py', 'code/12_pairwise_parameter_sweeps.py', 'code/test_r0_rd_graph.py']
+recent_files = ['code/BaD.py', 'code/bifurc_diags.py', 'code/test_vary_plots.py']
 
 [main]
 version = 0.2.0

@@ -6,6 +6,7 @@ Created on Mon Aug  7 10:27:00 2023
 @author: rya200
 """
 # %%
+import scipy.ndimage
 from scipy.integrate import quad, solve_ivp
 from scipy.optimize import fsolve
 import numpy as np
@@ -120,12 +121,24 @@ def plot_stead_state_parameter_sweeps(parameter_code, xx, yy, r0_combos,
     # Behaviour steady states
     plt.figure()
     plt.title(f"Steady state of behaviour: {lbl} sweep")
-    plt.contourf(xx, yy, np.array(BB).reshape(xx.shape),
-                 # levels = lvls,
-                 cmap=plt.cm.Blues)
-    plt.colorbar(format=tkr.PercentFormatter(xmax=1, decimals=2))
+    # plt.contourf(xx, yy, np.array(BB).reshape(xx.shape),
+    #              # levels = lvls,
+    #              cmap=plt.cm.Blues)
+    im = plt.imshow(np.array(BB).reshape(xx.shape),  cmap=plt.cm.Blues,
+                    origin='lower',
+                    extent=[xx.min(), xx.max(), yy.min(), yy.max()],
+                    aspect="auto")
+    ctr = plt.contour(xx, yy, np.array(BB).reshape(xx.shape),
+                      # levels = lvls,
+                      # cmap=plt.cm.Blues,
+                      colors="black",
+                      alpha=0.5)
+    cbar = plt.colorbar(im, format=tkr.PercentFormatter(xmax=1, decimals=2))
+    cbar_lvls = ctr.levels[1:-1]
+    cbar.add_lines(ctr)
+    cbar.set_ticks(cbar_lvls)
     if epi_r0:
-        plt.xlabel("Epidemic R0 (beta/gamma)")
+        plt.xlabel("$\\mathscr{R}_0^{D}$ ($\\beta/\\gamma$)")
         plt.plot(new_R0, r0_combos[:, 1], "k:")
     else:
         plt.xlabel("Behaviour affected R0")
@@ -139,19 +152,29 @@ def plot_stead_state_parameter_sweeps(parameter_code, xx, yy, r0_combos,
 
     vec_II = np.array(II)
     stp = vec_II[vec_II.nonzero()[0]].ptp()/6
-    lvls = np.arange(vec_II[vec_II.nonzero()[0]].min(),
+    lvls = np.arange(vec_II[vec_II.nonzero()[0]].min() + 5e-2,
                      vec_II.max() + stp, step=stp)
-    lvls = np.concatenate(([0], lvls))
+    # lvls = np.concatenate(([0], lvls))
 
     plt.figure()
     plt.title(f"Steady state of Infection: {lbl} sweep")
-    plt.contourf(xx, yy, vec_II.reshape(xx.shape),
-                 levels=lvls, cmap=plt.cm.Reds)
+    # plt.contourf(xx, yy, vec_II.reshape(xx.shape),
+    #              levels=lvls, cmap=plt.cm.Reds)
+    im = plt.imshow(vec_II.reshape(xx.shape),  cmap=plt.cm.Reds,
+                    origin='lower',
+                    extent=[xx.min(), xx.max(), yy.min(), yy.max()],
+                    aspect="auto", vmin=0)
+    ctr = plt.contour(xx, yy, vec_II.reshape(xx.shape),
+                      levels=lvls,
+                      colors="black", alpha=0.5)
     # plt.plot(new_R0, r0_combos[:, 1], "k:")
-    plt.colorbar(format=tkr.PercentFormatter(xmax=1, decimals=2))
+    cbar = plt.colorbar(im, format=tkr.PercentFormatter(xmax=1, decimals=2))
+    cbar_lvls = ctr.levels[:-1]
+    cbar.add_lines(ctr)
+    cbar.set_ticks(cbar_lvls)
     # plt.xlabel("Epidemic R0 (beta/gamma)")
     if epi_r0:
-        plt.xlabel("Epidemic R0 (beta/gamma)")
+        plt.xlabel("$\\mathscr{R}_0^{D}$ ($\\beta/\\gamma$)")
         plt.plot(new_R0, r0_combos[:, 1], "k:")
     else:
         plt.xlabel("Behaviour affected R0")
@@ -169,11 +192,16 @@ def plot_stead_state_parameter_sweeps(parameter_code, xx, yy, r0_combos,
         plt.title(f"Behaviour affected R0: {lbl} sweep")
         plt.contourf(xx, yy, np.array(R0_list).reshape(
             xx.shape), levels=r0_lvls,  cmap=plt.cm.Greens)
+        # plt.imshow(np.array(R0_list).reshape(xx.shape),
+        #            cmap=plt.cm.Greens,
+        #            origin='lower',
+        #            extent=[xx.min(), xx.max(), yy.min(), yy.max()],
+        #            aspect="auto")
         # plt.plot(new_R0, r0_combos[:, 1], "k:")
         plt.colorbar()
         # plt.xlabel("Epidemic R0 (beta/gamma)")
         if epi_r0:
-            plt.xlabel("Epidemic R0 (beta/gamma)")
+            plt.xlabel("$\\mathscr{R}_0^{D}$ ($\\beta/\\gamma$)")
             plt.plot(new_R0, r0_combos[:, 1], "k:")
         else:
             plt.xlabel("Behaviour affected R0")
@@ -252,3 +280,34 @@ for kk in param_dict.keys():
     plot_stead_state_parameter_sweeps(kk, xx, yy, r0_combos, R0_list,
                                       BB, II, new_R0, orig_param_dict=heat_map_params,
                                       epi_r0=epi_r0, save=save_figs)
+
+
+# # %%
+# vec_II = np.array(II)
+# stp = vec_II[vec_II.nonzero()[0]].ptp()/6
+# lvls = np.arange(vec_II[vec_II.nonzero()[0]].min() + 1e-2,
+#                  vec_II.max() + stp, step=stp)
+# # lvls = np.concatenate(([0], lvls))
+
+# # tmp = vec_II.reshape(xx.shape)
+# # tmp = scipy.ndimage.zoom(tmp, 3)
+# # tmpx = scipy.ndimage.zoom(xx, 3)
+# # tmpy = scipy.ndimage.zoom(yy, 3)
+
+# plt.figure()
+# # plt.contourf(xx, yy, vec_II.reshape(xx.shape),
+# #              levels=lvls, cmap=plt.cm.Reds)
+
+# ctr = plt.contour(xx, yy, vec_II.reshape(xx.shape),
+#                    levels=lvls,
+#                   colors="black", alpha=0.5)
+# im = plt.imshow(tmp,  cmap=plt.cm.Reds,
+#                 origin='lower',
+#                 extent=[xx.min(), xx.max(), yy.min(), yy.max()],
+#                 aspect="auto", vmin=0)
+# # plt.plot(new_R0, r0_combos[:, 1], "k:")
+# cbar = plt.colorbar(im, format=tkr.PercentFormatter(xmax=1, decimals=2))
+# cbar_lvls = ctr.levels[1:-1]
+# cbar.add_lines(ctr)
+# cbar.set_ticks(cbar_lvls)
+# plt.show()

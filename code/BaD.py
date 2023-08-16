@@ -855,8 +855,15 @@ def get_Ib(I, S, a, w, params):
     beta = params["transmission"]
     g = 1/params["infectious_period"]
 
-    numer = (1-c) * (beta * S - g) * I + c*w*I
-    denom = (1-c) * p * beta * S + c * (a + w + g)
+    if (np.isclose(p, 0)) and (np.isclose(c, 0)):
+        B, _, _ = get_B_a_w(I, params)
+        v = 1/params["immune_period"]
+        R = 1-S-I
+        numer = (beta*(B*(w+a+v)-w*R) + w*(w+a+v)) * I
+        denom = (w+a+g+beta*I)*(a+w+v) + g
+    else:
+        numer = (1-c) * (beta * S - g) * I + c*w*I
+        denom = (1-c) * p * beta * S + c * (a + w + g)
 
     ib = numer/denom
 
@@ -1024,9 +1031,13 @@ def find_ss(params):
     nu = 1/params["immune_period"]
     g = 1/params["infectious_period"]
 
-    init_i = nu/(g + nu) - 1e-3
-
-    Istar = fsolve(solve_I, x0=[init_i], args=(params))
+    # deal with case when p = c = 0
+    if (np.isclose(params["susc_B_efficacy"], 0)) and (np.isclose(params["inf_B_efficacy"], 0)):
+        Istar = [nu * (params["transmission"] - g) /
+                 (params["transmission"] * (g + nu))]
+    else:
+        init_i = nu/(g + nu) - 1e-3
+        Istar = fsolve(solve_I, x0=[init_i], args=(params))
 
     if Istar[0] < 1e-8:
         Istar[0] = 0
@@ -1061,8 +1072,8 @@ if __name__ == "__main__":
     cust_params["infectious_period"] = 1/gamma
     cust_params["immune_period"] = 240
     cust_params["av_lifespan"] = 0  # Turning off demography
-    cust_params["susc_B_efficacy"] = 0.8
-    cust_params["inf_B_efficacy"] = 0.4
+    cust_params["susc_B_efficacy"] = 0.4
+    cust_params["inf_B_efficacy"] = 0.8
     cust_params["N_social"] = 0.5
     cust_params["N_fear"] = 0.
     cust_params["B_social"] = 0.05 * w1
