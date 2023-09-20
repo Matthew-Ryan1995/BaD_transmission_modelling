@@ -56,6 +56,7 @@ class bad(object):
 
         for key, value in args.items():  # this is because I like the . notation. e.g. self.transmission
             self.__setattr__(key, value)
+        self.N_fear = 0
 
     def set_defaults(self, filename="/Users/rya200/Library/CloudStorage/OneDrive-CSIRO/Documents/03_projects/reid-mask_sir_toymodel/data/BaD_parameter_ranges.json"):
         """
@@ -74,6 +75,7 @@ class bad(object):
         args = kwargs
         for key, value in args.items():  # this is because I like the . notation. e.g. self.transmission
             self.__setattr__(key, value)
+        self.N_fear = 0
 
     def rate_to_infect(self, Ib, In):
         return self.transmission * (In + (1 - self.inf_B_efficacy) * Ib)
@@ -229,10 +231,10 @@ class bad(object):
             Equilibirum for the no-behaviour state
 
         """
-        if hasattr(self, 'results'):
-            Istar = self.results[-1, 2:4].sum()
-        elif not np.isnan(I_eval):
+        if not np.isnan(I_eval):
             Istar = I_eval
+        elif hasattr(self, 'results'):
+            Istar = self.results[-1, 2:4].sum()
         else:
             print("Model has not been run")
             return np.nan
@@ -271,8 +273,8 @@ class bad(object):
         """
         if hasattr(self, 'results'):
             P = self.results[0, 0:6].sum()
-            Ib = self.results[:, 3] / P
-            In = self.results[:, 2] / P
+            Ib = 0  # self.results[:, 3] / P
+            In = 0  # self.results[:, 2] / P
 
             if self.infectious_period == 0:
                 gamma = 0
@@ -1065,7 +1067,7 @@ if __name__ == "__main__":
 
     w1 = 8
     R0 = 5
-    gamma = 0.4
+    gamma = 1/5
 
     cust_params = dict()
     cust_params["transmission"] = R0*gamma
@@ -1073,11 +1075,11 @@ if __name__ == "__main__":
     cust_params["immune_period"] = 240
     cust_params["av_lifespan"] = 0  # Turning off demography
     cust_params["susc_B_efficacy"] = 0.4
-    cust_params["inf_B_efficacy"] = 0.8
+    cust_params["inf_B_efficacy"] = 0.4
     cust_params["N_social"] = 0.5
     cust_params["N_fear"] = 0.
     cust_params["B_social"] = 0.05 * w1
-    cust_params["B_fear"] = w1
+    cust_params["B_fear"] = 0.01  # w1
     cust_params["B_const"] = 0.0
     cust_params["N_const"] = 0.01
     # cust_params["transmission"] = R0*gamma
