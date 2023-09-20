@@ -84,7 +84,7 @@ class bad(object):
         return self.B_social * (tot_B_prop) + self.B_fear * (tot_inf) + self.B_const
 
     def rate_to_no_mask(self, tot_no_B_prop, tot_uninf):
-        return self.N_social * (tot_no_B_prop) + self.N_fear * (tot_uninf) + self.N_const
+        return self.N_social * (tot_no_B_prop) + self.N_const
 
     def odes(self, t, PP):
         """
@@ -240,11 +240,17 @@ class bad(object):
             return np.nan
 
         C = self.B_social - self.N_social
-        D = self.N_fear * (1 - Istar) + self.N_const + \
+        D = self.N_const + \
             self.B_fear * Istar + self.B_const
 
         if C == 0:
-            Nstar = (D - (self.B_fear * Istar + self.B_const)) / D
+            if D == 0:
+                if hasattr(self, 'results'):
+                    Nstar = self.results[0, 0]
+                else:
+                    Nstar = 1
+            else:
+                Nstar = (D - (self.B_fear * Istar + self.B_const)) / D
         else:
             Nstar = ((C + D) - np.sqrt((C + D)**2 - 4 * C *
                                        (D - (self.B_fear * Istar + self.B_const)))) / (2 * C)
@@ -295,8 +301,8 @@ class bad(object):
             alpha = self.rate_to_no_mask(tot_no_B_prop=1 - tot_B_prop,
                                          tot_uninf=1 - tot_inf)
 
-            x = omega + self.B_fear * In - (self.N_social - self.N_fear) * Ib
-            y = alpha - (self.B_social + self.B_fear) * In - self.N_fear * Ib
+            x = omega + self.B_fear * In - (self.N_social) * Ib
+            y = alpha - (self.B_social + self.B_fear) * In
 
             a = gamma + y + (1 - self.inf_B_efficacy) * x
             b = y + (1 - self.inf_B_efficacy) * (gamma + x)
@@ -378,8 +384,8 @@ def early_behaviour_dynamics(model: bad, method="exp"):
         print("Model has not been run")
         return np.nan
 
-    k3 = model.B_social - model.N_social - model.N_fear - model.N_const
-    k2 = model.N_fear
+    k3 = model.B_social - model.N_social - model.N_const
+    k2 = 0
     k1 = model.B_fear
     k0 = model.B_const
 
@@ -399,7 +405,7 @@ def early_behaviour_dynamics(model: bad, method="exp"):
 
 
 def calculate_F_m(t, M, model):
-    k3 = model.B_social - model.N_social - model.N_fear - model.N_const
+    k3 = model.B_social - model.N_social - model.N_const
 
     if M == 0:
         return (np.exp(k3 * t) - 1)/k3
@@ -449,18 +455,19 @@ def get_B_a_w(I, params):
     if I < 1e-8:
         I = 0
 
-    D = params["N_fear"] * (1-I) + params["N_const"] + \
-        params["B_fear"] * I + params["B_const"]
+    D = params["N_const"] + params["B_fear"] * I + params["B_const"]
     C = params["B_social"] - params["N_social"]
 
     if C == 0:
-        N = (D - (params["B_fear"] * I + params["B_const"])) / D
+        if D == 0:
+            N = 1
+        else:
+            N = (D - (params["B_fear"] * I + params["B_const"])) / D
     else:
         N = ((C + D) - np.sqrt((C + D)**2 - 4 * C *
              (D - (params["B_fear"] * I + params["B_const"])))) / (2 * C)
     B = 1 - N
-    a = params["N_social"] * (1-B) + params["N_fear"] * \
-        (1 - I) + params["N_const"]
+    a = params["N_social"] * (1-B) + params["N_const"]
     w = params["B_social"] * B + params["B_fear"] * I + params["B_const"]
 
     return B, a, w
@@ -1077,7 +1084,6 @@ if __name__ == "__main__":
     cust_params["susc_B_efficacy"] = 0.4
     cust_params["inf_B_efficacy"] = 0.4
     cust_params["N_social"] = 0.5
-    cust_params["N_fear"] = 0.
     cust_params["B_social"] = 0.05 * w1
     cust_params["B_fear"] = 0.01  # w1
     cust_params["B_const"] = 0.0
@@ -1089,7 +1095,6 @@ if __name__ == "__main__":
     # cust_params["susc_B_efficacy"] = 0.8
     # cust_params["inf_B_efficacy"] = 0.4
     # cust_params["N_social"] = 0.
-    # cust_params["N_fear"] = 0
     # cust_params["B_social"] = 0.0
     # cust_params["B_fear"] = 0
     # cust_params["B_const"] = 0.0
@@ -1154,20 +1159,19 @@ if __name__ == "__main__":
     plt.show()
 # %%
 
-    if np.isclose(cust_params["N_fear"], 0):
-        B_est = early_behaviour_dynamics(model=M1)
-        # tt_stop = [i for i in range(len(B_est)) if B_est[i] <= 1][-1]
-        tt_stop = next((i for i in range(len(B_est)) if B_est[i] > 1))
+    B_est = early_behaviour_dynamics(model=M1)
+    # tt_stop = [i for i in range(len(B_est)) if B_est[i] <= 1][-1]
+    tt_stop = next((i for i in range(len(B_est)) if B_est[i] > 1))
 
-        plt.figure()
-        plt.title(f"R0 = {R0}")
-        plt.plot(tt[0:tt_stop], M1.get_B()[0:tt_stop],
-                 "b", label="True behaviour dynamics")
-        plt.plot(tt[0:tt_stop], B_est[0:tt_stop],
-                 "r:", label="exponential estimate")
-        plt.xlabel("Time")
-        plt.legend()
-        plt.show()
+    plt.figure()
+    plt.title(f"R0 = {R0}")
+    plt.plot(tt[0:tt_stop], M1.get_B()[0:tt_stop],
+             "b", label="True behaviour dynamics")
+    plt.plot(tt[0:tt_stop], B_est[0:tt_stop],
+             "r:", label="exponential estimate")
+    plt.xlabel("Time")
+    plt.legend()
+    plt.show()
 
 # %%
     ss, _ = find_ss(cust_params)
@@ -1247,7 +1251,6 @@ if __name__ == "__main__":
     bifurc_params["susc_B_efficacy"] = 0.5
     bifurc_params["inf_B_efficacy"] = 0.3
     bifurc_params["N_social"] = 0.2
-    bifurc_params["N_fear"] = 1.1
     bifurc_params["B_social"] = 1.3
     bifurc_params["B_fear"] = 0.5
     bifurc_params["B_const"] = 0.7
@@ -1262,7 +1265,6 @@ if __name__ == "__main__":
     # bifurc_params["susc_B_efficacy"] = 0.4
     # bifurc_params["inf_B_efficacy"] = 0.8
     # bifurc_params["N_social"] = 0.5
-    # bifurc_params["N_fear"] = 0.0
     # bifurc_params["B_social"] = 0.05 * 8
     # bifurc_params["B_fear"] = 8
     # bifurc_params["B_const"] = 0.01
@@ -1271,8 +1273,7 @@ if __name__ == "__main__":
     M2 = bad(**bifurc_params)
     NN = M2.endemic_behaviour(get_res=True, save=False, I_eval=0)
 
-    a = bifurc_params["N_social"] * NN + \
-        bifurc_params["N_fear"] + bifurc_params["N_const"]
+    a = bifurc_params["N_social"] * NN + bifurc_params["N_const"]
     w = bifurc_params["B_social"] * (1-NN) + bifurc_params["B_const"]
 
     multi_val = (1/bifurc_params["infectious_period"])*(1/bifurc_params["infectious_period"] + a + w) / (NN * (a + 1/bifurc_params["infectious_period"] + (
@@ -1316,7 +1317,6 @@ if __name__ == "__main__":
     heat_map_params["susc_B_efficacy"] = 0.5
     heat_map_params["inf_B_efficacy"] = 0.3
     heat_map_params["N_social"] = 0.2
-    heat_map_params["N_fear"] = 1.1
     heat_map_params["B_social"] = 1.3
     heat_map_params["B_fear"] = 0.5
     heat_map_params["B_const"] = 0.7
@@ -1331,7 +1331,6 @@ if __name__ == "__main__":
     # heat_map_params["susc_B_efficacy"] = 0.4
     # heat_map_params["inf_B_efficacy"] = 0.8
     # heat_map_params["N_social"] = 0.5
-    # heat_map_params["N_fear"] = 0.0
     # heat_map_params["B_social"] = 0.05 * 8
     # heat_map_params["B_fear"] = 8
     # heat_map_params["B_const"] = 0.01
@@ -1353,8 +1352,7 @@ if __name__ == "__main__":
     for idx in range(len(r0_combos)):
         b = r0_combos[idx, 0]
         w = r0_combos[idx, 1]
-        ww = w * (heat_map_params["N_social"] +
-                  heat_map_params["N_fear"] + heat_map_params["N_const"])
+        ww = w * (heat_map_params["N_social"] + heat_map_params["N_const"])
 
         if epi_r0:
             bb = b * (1/heat_map_params["infectious_period"])
@@ -1392,8 +1390,7 @@ if __name__ == "__main__":
             b = r0_combos[idx, 0]
             w = r0_combos[idx, 1]
             bb = b * (1/heat_map_params["infectious_period"])
-            ww = w * (heat_map_params["N_social"] +
-                      heat_map_params["N_fear"] + heat_map_params["N_const"])
+            ww = w * (heat_map_params["N_social"] + heat_map_params["N_const"])
 
             M3.update_params(**{"transmission": bb, "B_social": ww})
 

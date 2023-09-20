@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['code/BaD.py', 'code/bifurc_diags.py', 'code/test_vary_plots.py']
+recent_files = ['code/BaD.py', 'code/16_varying_behaviour_effects_endemic_i.py', 'code/r0_vs_rd.py', 'code/13_steady_state_regions.py']
 
 [main]
 version = 0.2.0

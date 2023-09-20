@@ -104,7 +104,6 @@ def plot_stead_state_parameter_sweeps(parameter_code, xx, yy, r0_combos,
         "susc_B_efficacy": "c",
         "inf_B_efficacy": "p",
         "N_social": "a1",
-        "N_fear": "a2",
         "B_social": "w1",
         "B_fear": "w2",
         "B_const": "w3",
@@ -224,7 +223,6 @@ heat_map_params["av_lifespan"] = 0  # Turning off demography
 heat_map_params["susc_B_efficacy"] = 0.5
 heat_map_params["inf_B_efficacy"] = 0.3
 heat_map_params["N_social"] = 0.2
-heat_map_params["N_fear"] = 1.1
 heat_map_params["B_social"] = 1.3
 heat_map_params["B_fear"] = 0.5
 heat_map_params["B_const"] = 0.7
@@ -239,7 +237,6 @@ heat_map_params["N_const"] = 0.9
 # heat_map_params["susc_B_efficacy"] = 0.4
 # heat_map_params["inf_B_efficacy"] = 0.8
 # heat_map_params["N_social"] = 0.5
-# heat_map_params["N_fear"] = 0.0
 # heat_map_params["B_social"] = 0.05 * 8
 # heat_map_params["B_fear"] = 8
 # heat_map_params["B_const"] = 0.01
@@ -257,7 +254,6 @@ param_dict = {
     "susc_B_efficacy": ([0, 1], 0.05),
     "inf_B_efficacy": ([0, 1], 0.05),
     "N_social": (final_behav_R0_range, 0.1),
-    "N_fear": (final_behav_R0_range, 0.1),
     "B_social": (final_behav_R0_range, 0.1),
     "B_fear": (final_behav_R0_range, 0.1),
     "B_const": (final_behav_R0_range, 0.1),
