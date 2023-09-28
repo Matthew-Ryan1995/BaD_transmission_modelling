@@ -18,15 +18,27 @@ from BaD import *
 m_params = dict()
 m_params["transmission"] = 1
 m_params["infectious_period"] = 1/1
-m_params["immune_period"] = 1/0.5
+m_params["immune_period"] = 1/0.4
 m_params["av_lifespan"] = 0  # Turning off demography
 m_params["susc_B_efficacy"] = 0.5
-m_params["inf_B_efficacy"] = 0.3
-m_params["N_social"] = 1  # 0.2
-m_params["B_social"] = 0.1  # 1.3
-m_params["B_fear"] = 0.1  # 0.5
-m_params["B_const"] = 0.1  # 0.7
-m_params["N_const"] = 0.5  # 0.9
+m_params["inf_B_efficacy"] = 0.5
+m_params["N_social"] = 1.25  # 0.2
+m_params["B_social"] = 0.4  # 1.3
+m_params["B_fear"] = 8.  # 0.5
+m_params["B_const"] = 0.2  # 0.7
+m_params["N_const"] = 0.6  # 0.9
+# m_params = dict()
+# m_params["transmission"] = 1
+# m_params["infectious_period"] = 1/1
+# m_params["immune_period"] = 1/0.5
+# m_params["av_lifespan"] = 0  # Turning off demography
+# m_params["susc_B_efficacy"] = 0.5
+# m_params["inf_B_efficacy"] = 0.3
+# m_params["N_social"] = 1  # 0.2
+# m_params["B_social"] = 0.1  # 1.3
+# m_params["B_fear"] = 0.1  # 0.5
+# m_params["B_const"] = 0.1  # 0.7
+# m_params["N_const"] = 0.5  # 0.9
 
 # %%
 

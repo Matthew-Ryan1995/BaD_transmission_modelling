@@ -230,15 +230,28 @@ def plot_stead_state_parameter_sweeps(xx, yy, r0_combos,
 heat_map_params = dict()
 heat_map_params["transmission"] = 1
 heat_map_params["infectious_period"] = 1/1
-heat_map_params["immune_period"] = 1/0.5
+heat_map_params["immune_period"] = 1/0.4
 heat_map_params["av_lifespan"] = 0  # Turning off demography
 heat_map_params["susc_B_efficacy"] = 0.5
-heat_map_params["inf_B_efficacy"] = 0.3
-heat_map_params["N_social"] = 0.2
-heat_map_params["B_social"] = 1.3
-heat_map_params["B_fear"] = 3.5  # 0.5
-heat_map_params["B_const"] = 0.7
-heat_map_params["N_const"] = 0.9
+heat_map_params["inf_B_efficacy"] = 0.5
+heat_map_params["N_social"] = 1.25
+heat_map_params["B_social"] = 0.4
+heat_map_params["B_fear"] = 8.0  # 0.5
+heat_map_params["B_const"] = 0.2
+heat_map_params["N_const"] = 0.6
+
+# heat_map_params = dict()
+# heat_map_params["transmission"] = 1
+# heat_map_params["infectious_period"] = 1/1
+# heat_map_params["immune_period"] = 1/0.5
+# heat_map_params["av_lifespan"] = 0  # Turning off demography
+# heat_map_params["susc_B_efficacy"] = 0.5
+# heat_map_params["inf_B_efficacy"] = 0.3
+# heat_map_params["N_social"] = 0.2
+# heat_map_params["B_social"] = 1.3
+# heat_map_params["B_fear"] = 3.5  # 0.5
+# heat_map_params["B_const"] = 0.7
+# heat_map_params["N_const"] = 0.9
 
 # Different set of params
 # heat_map_params = dict()
@@ -280,8 +293,8 @@ save_figs = True
 
 # for kk in param_dict.keys():
 
-p = [0, 0.25, 0.5, 0.75, 1]
-c = [0, 0.25, 0.5, 0.75, 1]
+p = [0.5]  # [0, 0.25, 0.5, 0.75, 1]
+c = [0.5]  # [0, 0.25, 0.5, 0.75, 1]
 
 new_dict = dict(heat_map_params)
 
@@ -300,28 +313,28 @@ for pp in p:
                                           epi_r0=epi_r0, save=save_figs)
 # %% Create figures - vary w2
 
-epi_r0 = True  # Plot beta/gamma on x axis or not
-save_figs = True
+# epi_r0 = True  # Plot beta/gamma on x axis or not
+# save_figs = True
 
-# for kk in param_dict.keys():
+# # for kk in param_dict.keys():
 
-w2 = [0, 0.25, 0.5, 0.75, 1]
+# w2 = [0, 0.25, 0.5, 0.75, 1]
 
-new_dict = dict(heat_map_params)
+# new_dict = dict(heat_map_params)
 
-new_dict["B_const"] = 0.0
+# new_dict["B_const"] = 0.0
 
-for ww in w2:
-    new_dict["B_fear"] = ww
+# for ww in w2:
+#     new_dict["B_fear"] = ww
 
-    xx, yy, r0_combos, R0_list, BB, II, new_R0 = parameter_sweep(new_dict,
-                                                                 epi_r0=epi_r0,
-                                                                 epi_range=R0_minmax,
-                                                                 behav_range=final_behav_R0_range,
-                                                                 behav_step=0.1)
-    plot_stead_state_parameter_sweeps(xx, yy, r0_combos, R0_list,
-                                      BB, II, new_R0, orig_param_dict=new_dict,
-                                      epi_r0=epi_r0, save=save_figs)
+#     xx, yy, r0_combos, R0_list, BB, II, new_R0 = parameter_sweep(new_dict,
+#                                                                  epi_r0=epi_r0,
+#                                                                  epi_range=R0_minmax,
+#                                                                  behav_range=final_behav_R0_range,
+#                                                                  behav_step=0.1)
+#     plot_stead_state_parameter_sweeps(xx, yy, r0_combos, R0_list,
+#                                       BB, II, new_R0, orig_param_dict=new_dict,
+#                                       epi_r0=epi_r0, save=save_figs)
 
 
 # %%

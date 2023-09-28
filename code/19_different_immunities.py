@@ -33,29 +33,42 @@ R0d = 5.4
 # m_params["N_const"] = 0.9
 
 
-def create_params(Bstar, R0=5, inf_per=7, imm_per=240):
+def create_params(R0=5):
     model_params = dict()
-    model_params["transmission"] = R0/inf_per
-    model_params["infectious_period"] = inf_per
-    model_params["immune_period"] = imm_per
+    model_params["transmission"] = R0
+    model_params["infectious_period"] = 1
+    model_params["immune_period"] = 1/0.4
     model_params["av_lifespan"] = 0  # Turning off demography
-    model_params["susc_B_efficacy"] = 1.
-    model_params["inf_B_efficacy"] = 1.
-    model_params["N_social"] = 0.
-    model_params["B_fear"] = 0.
-    model_params["B_const"] = 0.
+    model_params["susc_B_efficacy"] = .5
+    model_params["inf_B_efficacy"] = .5
+    model_params["N_social"] = 1.25
+    model_params["B_fear"] = 8.
+    model_params["B_const"] = 0.2
 
-    if Bstar == 1:
-        model_params["N_const"] = 0
-        model_params["B_social"] = 1
-    else:
-        model_params["B_social"] = 3.5/(1-Bstar)
-        model_params["N_const"] = 3.5
+    model_params["N_const"] = 0.6
+    model_params["B_social"] = 0.4
+    # model_params = dict()
+    # model_params["transmission"] = R0/inf_per
+    # model_params["infectious_period"] = inf_per
+    # model_params["immune_period"] = imm_per
+    # model_params["av_lifespan"] = 0  # Turning off demography
+    # model_params["susc_B_efficacy"] = 1.
+    # model_params["inf_B_efficacy"] = 1.
+    # model_params["N_social"] = 0.
+    # model_params["B_fear"] = 0.
+    # model_params["B_const"] = 0.
+
+    # if Bstar == 1:
+    #     model_params["N_const"] = 0
+    #     model_params["B_social"] = 1
+    # else:
+    #     model_params["B_social"] = 3.5/(1-Bstar)
+    #     model_params["N_const"] = 3.5
 
     return model_params
 
 
-m_params = create_params(0.05)
+m_params = create_params(R0=2.4)
 
 # %%
 
@@ -64,7 +77,7 @@ In = 1e-3
 Ib = Rb = 0
 Rn = [0.0, 0.2, 0.4, 0.6, 0.8, 0.95]
 
-t_start, t_end = [0, 900]
+t_start, t_end = [0, 50]
 
 res_i = list()
 res_s = list()
@@ -108,7 +121,7 @@ In = 1e-3
 Ib = Rb = 0
 Rn = [0.0, 0.95]
 
-t_start, t_end = [0, 900]
+t_start, t_end = [0, 50]
 
 res_i = list()
 res_s = list()

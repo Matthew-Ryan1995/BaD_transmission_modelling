@@ -22,21 +22,34 @@ r0d = np.arange(0.1, 10, step=0.5)
 r0b = np.arange(0.1, 5, step=0.5)
 
 
-def create_params(r0d, r0b, infectious_period=1, immune_period=2):
-    params = dict()
+def create_params(r0d, r0b):
     model_params = dict()
-    model_params["transmission"] = r0d/infectious_period
-    model_params["infectious_period"] = infectious_period
-    model_params["immune_period"] = immune_period
+    model_params["transmission"] = r0d
+    model_params["infectious_period"] = 1
+    model_params["immune_period"] = 1/0.4
     model_params["av_lifespan"] = 0  # Turning off demography
-    model_params["susc_B_efficacy"] = 0.7
-    model_params["inf_B_efficacy"] = 0.4
-    model_params["N_social"] = 0.
-    model_params["B_fear"] = 3.5
-    model_params["N_const"] = 0.9
-    model_params["B_const"] = 0.7
+    model_params["susc_B_efficacy"] = 0.5
+    model_params["inf_B_efficacy"] = 0.5
+    model_params["N_social"] = 1.25
+    model_params["B_fear"] = 8.
+    model_params["N_const"] = 0.6
+    model_params["B_const"] = 0.2
     model_params["B_social"] = r0b / \
         (model_params["N_social"] + model_params["N_const"])
+    # params = dict()
+    # model_params = dict()
+    # model_params["transmission"] = r0d/infectious_period
+    # model_params["infectious_period"] = infectious_period
+    # model_params["immune_period"] = immune_period
+    # model_params["av_lifespan"] = 0  # Turning off demography
+    # model_params["susc_B_efficacy"] = 0.7
+    # model_params["inf_B_efficacy"] = 0.4
+    # model_params["N_social"] = 0.
+    # model_params["B_fear"] = 3.5
+    # model_params["N_const"] = 0.9
+    # model_params["B_const"] = 0.7
+    # model_params["B_social"] = r0b / \
+    #     (model_params["N_social"] + model_params["N_const"])
 
     return model_params
 

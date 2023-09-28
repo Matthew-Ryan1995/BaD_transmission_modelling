@@ -86,7 +86,7 @@ class bad(object):
     def rate_to_no_mask(self, tot_no_B_prop, tot_uninf):
         return self.N_social * (tot_no_B_prop) + self.N_const
 
-    def odes(self, t, PP):
+    def odes(self, t, PP, incidence=False):
         """
         ODE set up to use spi.integrate.solve_ivp.  This defines the change in state at time t.
 
@@ -107,6 +107,9 @@ class bad(object):
         """
 
         # NB: Put in parameter checks
+        # if incidence:
+        #     Y = np.zeros((len(PP) + 1))
+        # else:
         Y = np.zeros((len(PP)))
         P = PP[0:6].sum()
 
@@ -145,10 +148,12 @@ class bad(object):
             PP[4] - nu * PP[4] - mu * PP[4]  # Rn
         Y[5] = gamma * PP[3] - alpha * PP[5] + omega * \
             PP[4] - nu * PP[5] - mu * PP[5]  # Rb
+        if incidence:
+            Y[6] = lam * PP[0] + lam * (1-self.susc_B_efficacy) * PP[1]
 
         return Y
 
-    def run(self, IC, t_start, t_end, t_step=1, t_eval=True, events=[]):
+    def run(self, IC, t_start, t_end, t_step=1, t_eval=True, events=[], incidence=False):
         """
         Run the model and store data and time
 
@@ -174,6 +179,11 @@ class bad(object):
         self with new data added
 
         """
+        if incidence:
+            args = [incidence]
+            IC = np.concatenate((IC, [0]))
+        else:
+            args = []
         if t_eval:
             t_range = np.arange(
                 start=t_start, stop=t_end + t_step, step=t_step)
@@ -184,6 +194,7 @@ class bad(object):
                             y0=IC,
                             t_eval=t_range,
                             events=events,
+                            args=args
                             # rtol=1e-7, atol=1e-14
                             )
             self.results = res.y.T
@@ -191,8 +202,12 @@ class bad(object):
             res = solve_ivp(fun=self.odes,
                             t_span=[t_start, t_end],
                             y0=IC,
-                            events=events)
+                            events=events,
+                            args=args)
             self.results = res.y.T
+        if incidence:
+            self.incidence = self.results[:, -1]
+            self.results = self.results[:, 0:-1]
 
     def get_B(self):
         if hasattr(self, 'results'):
@@ -260,7 +275,7 @@ class bad(object):
         if save:
             self.Nstar = Nstar
 
-    def NGM(self, get_res=False):
+    def NGM(self, get_res=False, orig=False):
         """
         Calcualte the "behaviour-affected" effective reproduction number using the
         next generation matrix method
@@ -279,8 +294,15 @@ class bad(object):
         """
         if hasattr(self, 'results'):
             P = self.results[0, 0:6].sum()
-            Ib = 0  # self.results[:, 3] / P
-            In = 0  # self.results[:, 2] / P
+
+            if orig:
+                Ib = self.results[:, 3] / P
+                In = self.results[:, 2] / P
+                tot_inf = self.get_I()/P
+            else:
+                Ib = 0  # self.results[:, 3] / P
+                In = 0  # self.results[:, 2] / P
+                tot_inf = 0  # self.get_I()/P
 
             if self.infectious_period == 0:
                 gamma = 0
@@ -294,7 +316,6 @@ class bad(object):
             gamma = gamma + mu
 
             tot_B_prop = self.get_B()/P
-            tot_inf = self.get_I()/P
 
             omega = self.rate_to_mask(tot_B_prop=tot_B_prop,
                                       tot_inf=tot_inf)
