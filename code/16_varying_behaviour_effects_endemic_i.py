@@ -15,18 +15,18 @@ from BaD import *
 
 # %%
 
-m_params = dict()
-m_params["transmission"] = 1
-m_params["infectious_period"] = 1/1
-m_params["immune_period"] = 1/0.4
-m_params["av_lifespan"] = 0  # Turning off demography
-m_params["susc_B_efficacy"] = 0.5
-m_params["inf_B_efficacy"] = 0.5
-m_params["N_social"] = 1.25  # 0.2
-m_params["B_social"] = 0.4  # 1.3
-m_params["B_fear"] = 8.  # 0.5
-m_params["B_const"] = 0.2  # 0.7
-m_params["N_const"] = 0.6  # 0.9
+m_params = load_param_defaults()
+# m_params["transmission"] = 1
+# m_params["infectious_period"] = 1/1
+# m_params["immune_period"] = 1/0.4
+# m_params["av_lifespan"] = 0  # Turning off demography
+# m_params["susc_B_efficacy"] = 0.5
+# m_params["inf_B_efficacy"] = 0.5
+# m_params["N_social"] = 1.25  # 0.2
+# m_params["B_social"] = 0.4  # 1.3
+# m_params["B_fear"] = 8.  # 0.5
+# m_params["B_const"] = 0.2  # 0.7
+# m_params["N_const"] = 0.6  # 0.9
 # m_params = dict()
 # m_params["transmission"] = 1
 # m_params["infectious_period"] = 1/1
@@ -173,18 +173,18 @@ plt.show()
 
 # %%
 
-baseline_params = dict()
-baseline_params["transmission"] = 1
-baseline_params["infectious_period"] = 1
-baseline_params["immune_period"] = 1/0.4
-baseline_params["av_lifespan"] = 0  # Turning off demography
-baseline_params["susc_B_efficacy"] = 0.5
-baseline_params["inf_B_efficacy"] = 0.5
-baseline_params["N_social"] = 1.25
-baseline_params["B_social"] = 0.4
-baseline_params["B_fear"] = 0.4/0.05
-baseline_params["B_const"] = 0.2
-baseline_params["N_const"] = 0.6
+baseline_params = load_param_defaults()
+# baseline_params["transmission"] = 1
+# baseline_params["infectious_period"] = 1
+# baseline_params["immune_period"] = 1/0.4
+# baseline_params["av_lifespan"] = 0  # Turning off demography
+# baseline_params["susc_B_efficacy"] = 0.5
+# baseline_params["inf_B_efficacy"] = 0.5
+# baseline_params["N_social"] = 1.25
+# baseline_params["B_social"] = 0.4
+# baseline_params["B_fear"] = 0.4/0.05
+# baseline_params["B_const"] = 0.2
+# baseline_params["N_const"] = 0.6
 # baseline_params = dict()
 # baseline_params["transmission"] = 1
 # baseline_params["infectious_period"] = 1
@@ -327,10 +327,10 @@ def create_plot(base_params, focus_param):
         plt.plot(r0_vals, i_list_10, label="Doubled effect", color="#CC6677")
         plt.plot(r0_vals, i_list_90, label="Quadrupled effect", color="#DDCC77")
 
-    plt.plot([1.4, 1.4], [0, 0.3], ":k")
-    plt.text(1.5, 0.25, "Flu-like")
-    plt.plot([5.4, 5.4], [0, 0.3], ":k")
-    plt.text(5.5, 0.1, "Covid-like")
+    plt.plot([1.4, 1.4], [0, i_list_no_behaviour.max()], ":k")
+    plt.text(1.5, i_list_no_behaviour.max(), "Flu-like")
+    plt.plot([5.4, 5.4], [0, i_list_no_behaviour.max()], ":k")
+    plt.text(5.5, i_list_no_behaviour.max(), "Covid-like")
 
     plt.xlabel("Disease characteristic ($\\mathscr{R}_0^D$)")
     plt.ylabel("Endemic disease prevalence ($I^*$)")

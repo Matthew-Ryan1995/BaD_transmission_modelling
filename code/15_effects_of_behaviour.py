@@ -116,7 +116,7 @@ def create_prevalence_difference_plot(params, I_diff, R0_range, save=False, dpi=
 
 
 def create_params(Bstar):
-    model_params = dict()
+    model_params = load_param_defaults()
     model_params["transmission"] = 1  # going to vary
     model_params["infectious_period"] = 1/1
     model_params["immune_period"] = 1/0.5

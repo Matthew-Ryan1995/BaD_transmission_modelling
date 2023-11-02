@@ -227,18 +227,18 @@ def plot_stead_state_parameter_sweeps(xx, yy, r0_combos,
 # %%
 
 
-heat_map_params = dict()
-heat_map_params["transmission"] = 1
-heat_map_params["infectious_period"] = 1/1
-heat_map_params["immune_period"] = 1/0.4
-heat_map_params["av_lifespan"] = 0  # Turning off demography
-heat_map_params["susc_B_efficacy"] = 0.5
-heat_map_params["inf_B_efficacy"] = 0.5
-heat_map_params["N_social"] = 1.25
-heat_map_params["B_social"] = 0.4
-heat_map_params["B_fear"] = 8.0  # 0.5
-heat_map_params["B_const"] = 0.2
-heat_map_params["N_const"] = 0.6
+heat_map_params = load_param_defaults()
+# heat_map_params["transmission"] = 1
+# heat_map_params["infectious_period"] = 1/1
+# heat_map_params["immune_period"] = 1/0.4
+# heat_map_params["av_lifespan"] = 0  # Turning off demography
+# heat_map_params["susc_B_efficacy"] = 0.5
+# heat_map_params["inf_B_efficacy"] = 0.5
+# heat_map_params["N_social"] = 1.25
+# heat_map_params["B_social"] = 0.4
+# heat_map_params["B_fear"] = 8.0  # 0.5
+# heat_map_params["B_const"] = 0.2
+# heat_map_params["N_const"] = 0.6
 
 # heat_map_params = dict()
 # heat_map_params["transmission"] = 1

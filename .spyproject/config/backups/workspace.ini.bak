@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['code/BaD.py', 'code/r0_vs_rd.py', 'code/16_varying_behaviour_effects_endemic_i.py', 'code/19_different_immunities.py', 'code/14_r0b_v_r0d.py', 'code/20_marginal_heatmap_expore.py']
+recent_files = ['code/BaD.py', 'code/16_varying_behaviour_effects_endemic_i.py', 'code/r0_vs_rd.py', 'code/19_different_immunities.py', '../../05_coding/apsrm/apsrm/config.py']
 
 [main]
 version = 0.2.0

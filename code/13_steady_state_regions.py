@@ -563,18 +563,18 @@ def create_ss_plots_convergence(input_params, r0_b, r0_d, grid_vals, ss_categori
 # %%
 
 
-plot_params_baseline = dict()
-plot_params_baseline["transmission"] = 1
-plot_params_baseline["infectious_period"] = 1/1
-plot_params_baseline["immune_period"] = 1/0.4
-plot_params_baseline["av_lifespan"] = 0  # Turning off demography
-plot_params_baseline["susc_B_efficacy"] = 0.5
-plot_params_baseline["inf_B_efficacy"] = 0.5
-plot_params_baseline["N_social"] = 1.25
-plot_params_baseline["B_social"] = 0.4
-plot_params_baseline["B_fear"] = 8.0
-plot_params_baseline["B_const"] = 0.2
-plot_params_baseline["N_const"] = 0.6
+plot_params_baseline = load_param_defaults()
+# plot_params_baseline["transmission"] = 1
+# plot_params_baseline["infectious_period"] = 1/1
+# plot_params_baseline["immune_period"] = 1/0.4
+# plot_params_baseline["av_lifespan"] = 0  # Turning off demography
+# plot_params_baseline["susc_B_efficacy"] = 0.5
+# plot_params_baseline["inf_B_efficacy"] = 0.5
+# plot_params_baseline["N_social"] = 1.25
+# plot_params_baseline["B_social"] = 0.4
+# plot_params_baseline["B_fear"] = 8.0
+# plot_params_baseline["B_const"] = 0.2
+# plot_params_baseline["N_const"] = 0.6
 # plot_params_baseline = dict()
 # plot_params_baseline["transmission"] = 1
 # plot_params_baseline["infectious_period"] = 1/1

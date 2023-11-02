@@ -58,7 +58,7 @@ class bad(object):
             self.__setattr__(key, value)
         self.N_fear = 0
 
-    def set_defaults(self, filename="/Users/rya200/Library/CloudStorage/OneDrive-CSIRO/Documents/03_projects/reid-mask_sir_toymodel/data/BaD_parameter_ranges.json"):
+    def set_defaults(self, filename="/Users/rya200/Library/CloudStorage/OneDrive-CSIRO/Documents/03_projects/reid-mask_sir_toymodel/code/model_parameters.json"):
         """
         Written by: Rosyln Hickson
         Pull out default values from a file in json format.
@@ -376,6 +376,20 @@ class bad(object):
         return BA_R0
 
 # %% functions external to class
+
+
+def load_param_defaults(filename="/Users/rya200/Library/CloudStorage/OneDrive-CSIRO/Documents/03_projects/reid-mask_sir_toymodel/code/model_parameters.json"):
+    """
+    Written by: Rosyln Hickson
+    Pull out default values from a file in json format.
+    :param filename: json file containing default parameter values, which can be overridden by user specified values
+    :return: loaded expected parameter values
+    """
+    with open(filename) as json_file:
+        json_data = json.load(json_file)
+    for key, value in json_data.items():
+        json_data[key] = value["exp"]
+    return json_data
 
 
 def early_behaviour_dynamics(model: bad, method="exp"):
