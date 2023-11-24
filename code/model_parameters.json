@@ -25,11 +25,11 @@
   },
 	"immune_period": {
     "min" : 0.0,
-    "exp" : 35.0,
+    "exp" : 40.0, 
     "max" : 365.0,
     "description": "Immunity period",
     "units" : "days",
-    "source" : "Currently made up \\cite{} ",
+    "source" : "Currently made up https://doi.org/10.1016/S0140-6736(22)02465-5 - changed on 15/11/2023",
     "location": "",
     "temperature": "no",
     "water": "no",

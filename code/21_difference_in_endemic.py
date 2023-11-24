@@ -120,16 +120,21 @@ def create_params(w, R0=5):
 
 def prevalence_change_plot(disease_type, target_reduction=20, save=False):
     if disease_type == "covid_like":
-        R0 = 8.4
-        title = "Covid-like illness ($\\mathscr{R}_0^D = 8.4$)"
+        R0 = 8.2
+        title = "Covid-like illness ($\\mathscr{R}_0^D = 8.2$)"
         text_factor = 1.2
     elif disease_type == "flu_like":
-        R0 = 1.4
-        title = "Flu-like illness ($\\mathscr{R}_0^D = 1.4$)"
+        R0 = 1.5
+        title = "Influenza-like illness ($\\mathscr{R}_0^D = 1.5$)"
         text_factor = 2
     else:
         R0 = disease_type
         title = "$\\mathscr{R}_0^D =$"+f"{R0}"
+
+    init_param = create_params(w=0.4, R0=R0)
+    ss, _ = find_ss(init_param)
+    B_vert = ss[[1, 3, 5]].sum()
+    print(f"Bvert is {B_vert.round(2)}")
 
     B_star_range = [0]
     ww = np.arange(0, 10, step=0.1)
@@ -180,6 +185,7 @@ def prevalence_change_plot(disease_type, target_reduction=20, save=False):
                    color=color, rotation=-90, va="center")
     ax2.plot(B_star_range, I_diff/I_diff.max() * 100, color="black")
     ax2.tick_params(axis='y', labelcolor=color)
+    ax2.plot([B_vert, B_vert], [0, 100], ":k")
     # ax2.plot([0, 1], [20, 20], ":k")
     # ax2.plot([B_star_target, B_star_target], [0, 100], ":k")
     # ax2.plot([B_star_100, B_star_100], [0, 100], ":k")

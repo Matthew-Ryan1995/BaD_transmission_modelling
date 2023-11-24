@@ -402,7 +402,7 @@ def create_ss_plots_2(input_params, r0_b, r0_d, grid_vals, ss_categories, save=F
     caption_txt = "Dark blue - BaD free; Light blue - B free, D endemic; \nLight red - B endemic, D free; Dark red - BaD endemic"
 
     plt.figure()
-    plt.title(title)
+    # plt.title(title)
     plt.tight_layout()
     plt.contourf(grid_vals[1], grid_vals[0], ss_categories,
                  levels=lvls,  cmap=cmap)
@@ -411,11 +411,11 @@ def create_ss_plots_2(input_params, r0_b, r0_d, grid_vals, ss_categories, save=F
         plt.plot(y_line, [1, 1], color="black", linewidth=2)
     plt.ylabel(
         # "Behavioural characteristic ($\\omega_1 / (\\alpha_1 + \\alpha_2 + \\alpha_3)$)"
-        "$\\mathscr{R}_0^{B}$"
+        "Behavioural characteristic ($\\mathscr{R}_0^{B}$)"
     )
     plt.xlabel(
         # "Epidemic characteristic ($\\beta/\\gamma$)"
-        "$\\mathscr{R}_0^{D}$"
+        "Disease characteristic ($\\mathscr{R}_0^{D}$)"
     )
 
     y_ticks = plt.yticks()[0]
@@ -560,6 +560,121 @@ def create_ss_plots_convergence(input_params, r0_b, r0_d, grid_vals, ss_categori
     else:
         plt.show()
 
+
+def create_ss_plots_epidemics(input_params, r0_b, r0_d, grid_vals, ss_categories, save=False):
+
+    lvls = [0, 0.5, 1.5, 2.5, 3.5]
+    cmap = plt.cm.RdBu_r
+
+    if input_params["B_fear"] > 0:
+        y_line = [0, 1]
+    else:
+        y_line = [0, grid_vals[1].max()]
+
+    code_to_label = {
+        # "transmission": "beta",
+        "infectious_period": "gamma_inv",
+        "immune_period": "nu_inv",
+        "susc_B_efficacy": "c",
+        "inf_B_efficacy": "p",
+        "N_social": "a1",
+        # "B_social": "w1",
+        # "B_fear": "w2",
+        # "B_const": "w3",
+        "N_const": "a3"
+    }
+    code_to_latex = {
+        # "transmission": "beta",
+        "infectious_period": "$1/\\gamma$",
+        "immune_period": "$1/\\nu$",
+        "susc_B_efficacy": "$c$",
+        "inf_B_efficacy": "$p$",
+        "N_social": "$\\alpha_1$",
+        # "B_social": "w1",
+        # "B_fear": "w2",
+        # "B_const": "w3",
+        "N_const": "$\\alpha_3$"
+    }
+    title = "Steady state regions: "
+    if np.isclose(input_params["B_fear"], 0):
+        title += "$\\omega_2$ = 0, "
+    if np.isclose(input_params["B_const"], 0):
+        title += "$\\omega_3$ = 0"
+    title += "\n| "
+
+    for var in code_to_latex.keys():
+        if var == "N_social":
+            title += "\n| "
+        title += code_to_latex[var] + " = " + \
+            str(np.round(input_params[var], 1)) + " | "
+    if input_params["B_fear"] > 0:
+        title += "$\\omega_2$  = " + \
+            str(np.round(input_params["B_fear"], 1)) + " | "
+    if input_params["B_const"] > 0:
+        title += "$\\omega_2$  = " + \
+            str(np.round(input_params["B_const"], 1)) + " | "
+
+    save_lbl = "epidemics/ss_regions_"
+    for var in code_to_label.keys():
+        save_lbl += code_to_label[var] + "_" + str(input_params[var]) + "_"
+
+    append_txt = ""
+    if input_params["B_fear"] > 0:
+        save_lbl += "w2_" + str(np.round(input_params["B_fear"], 1)) + "_"
+    else:
+        append_txt += "w2_0_"
+    if input_params["B_const"] > 0:
+        save_lbl += "w3_" + str(np.round(input_params["B_const"], 1))
+    else:
+        append_txt += "w3_0"
+
+    caption_txt = "Dark blue - BaD free; Light blue - B free, D endemic; \nLight red - B endemic, D free; Dark red - BaD endemic"
+
+    plt.figure()
+    # plt.title(title)
+    plt.tight_layout()
+    plt.contourf(grid_vals[1], grid_vals[0], ss_categories,
+                 levels=lvls,  cmap=cmap)
+    plt.plot(r0_d, r0_b, linestyle="-", color="black", linewidth=2)
+    if np.isclose(input_params["B_const"], 0):
+        plt.plot(y_line, [1, 1], color="black", linewidth=2)
+    plt.ylabel(
+        # "Behavioural characteristic ($\\omega_1 / (\\alpha_1 + \\alpha_2 + \\alpha_3)$)"
+        "Social 'transmisibility' of behaviour ($\\mathscr{R}_0^{B}$)"
+    )
+    plt.xlabel(
+        # "Epidemic characteristic ($\\beta/\\gamma$)"
+        "Disease transmisibility ($\\mathscr{R}_0^{D}$)"
+    )
+
+    y_ticks = plt.yticks()[0]
+    y_spacing = y_ticks[1] - y_ticks[0]
+
+    # plt.text(0., -y_spacing - 0.5, caption_txt, va="top")
+    x_pos = 1.5+(grid_vals[1].max() - 1)/2
+    y_pos = 1+(grid_vals[0].max() - 1)/2
+    if np.isclose(input_params["B_const"], 0):
+        plt.text(0.5, 0.5, "Neither", size=16, va="center", ha="center")
+        if np.isclose(input_params["B_fear"], 0):
+            plt.text(x_pos, 0.5, "No behaviour,\ndisease present",
+                     size=16, va="center", ha="center")
+
+    plt.text(1.5, y_pos+0.5, "Behaviour present,\nno disease",
+             size=16, va="center", ha="center")
+    if np.isclose(input_params["B_fear"], 0):
+        plt.text(x_pos+0.2, y_pos, "Behaviour and\ndisease present",
+                 size=16, va="center", ha="center")
+    else:
+        plt.text(x_pos, y_pos-1, "Behaviour and\ndisease present",
+                 size=16, va="center", ha="center")
+
+    if save:
+        plt.savefig("../img/" + save_lbl + append_txt +
+                    ".png", dpi=600, bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()
+
 # %%
 
 
@@ -602,6 +717,8 @@ create_ss_plots_2(plot_params, r0_b, r0_d,
                   grid_vals, ss_categories, save=True)
 create_ss_plots_convergence(plot_params, r0_b, r0_d,
                             grid_vals, ss_categories, save=True)
+create_ss_plots_epidemics(plot_params, r0_b, r0_d,
+                          grid_vals, ss_categories, save=True)
 
 plot_params["B_const"] = 0
 r0_b, r0_d, grid_vals, ss_categories = create_ss_region_data(
@@ -610,6 +727,8 @@ create_ss_plots_2(plot_params, r0_b, r0_d,
                   grid_vals, ss_categories, save=True)
 create_ss_plots_convergence(plot_params, r0_b, r0_d,
                             grid_vals, ss_categories, save=True)
+create_ss_plots_epidemics(plot_params, r0_b, r0_d,
+                          grid_vals, ss_categories, save=True)
 
 plot_params["B_fear"] = 0
 r0_b, r0_d, grid_vals, ss_categories = create_ss_region_data(
@@ -618,6 +737,8 @@ create_ss_plots_2(plot_params, r0_b, r0_d,
                   grid_vals, ss_categories, save=True)
 create_ss_plots_convergence(plot_params, r0_b, r0_d,
                             grid_vals, ss_categories, save=True)
+create_ss_plots_epidemics(plot_params, r0_b, r0_d,
+                          grid_vals, ss_categories, save=True)
 
 # %% Check 1: looking at all combos of omegas.
 # Results: What we expect.  Only cases to consider are w3 on, w3 off w2 on, w3 and w2 off

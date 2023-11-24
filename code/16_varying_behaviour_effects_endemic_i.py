@@ -198,8 +198,6 @@ baseline_params = load_param_defaults()
 # baseline_params["B_const"] = 0.5
 # baseline_params["N_const"] = 0.9
 
-r0_vals = np.arange(0.1, 8.1, step=0.1)
-
 
 def return_i_b(params, R0):
     v_params = dict(params)
@@ -218,59 +216,61 @@ def return_i_b(params, R0):
     return i_list, b_list
 
 
-i_list_base, bb_1 = return_i_b(baseline_params, r0_vals)
+# i_list_base, bb_1 = return_i_b(baseline_params, r0_vals)
 
-no_behaviour = dict(baseline_params)
-no_behaviour["susc_B_efficacy"] = 0.0
-no_behaviour["inf_B_efficacy"] = 0.0
+# no_behaviour = dict(baseline_params)
+# no_behaviour["susc_B_efficacy"] = 0.0
+# no_behaviour["inf_B_efficacy"] = 0.0
 
-i_list_no_behaviour, _ = return_i_b(no_behaviour, r0_vals)
+# i_list_no_behaviour, _ = return_i_b(no_behaviour, r0_vals)
 
-param_vary = ["B_social", "B_fear", "B_const"]
+# param_vary = ["B_social", "B_fear", "B_const"]
 
-titles = {
-    "B_social": "Social cues to action",
-    "B_fear": "Perception of illness threat",
-    "B_const": "Self efficacy and perceived benefits"
-}
+# titles = {
+#     "B_social": "Social cues to action",
+#     "B_fear": "Perception of illness threat",
+#     "B_const": "Self efficacy and perceived benefits"
+# }
 
-for w in param_vary:
-    increase_10 = dict(baseline_params)
-    increase_10[w] = 2 * increase_10[w]
+# for w in param_vary:
+#     increase_10 = dict(baseline_params)
+#     increase_10[w] = 2 * increase_10[w]
 
-    i_list_10, _ = return_i_b(increase_10, r0_vals)
+#     i_list_10, _ = return_i_b(increase_10, r0_vals)
 
-    increase_90 = dict(baseline_params)
-    increase_90[w] = 4 * increase_90[w]
+#     increase_90 = dict(baseline_params)
+#     increase_90[w] = 4 * increase_90[w]
 
-    i_list_90, bb = return_i_b(increase_90, r0_vals)
+#     i_list_90, bb = return_i_b(increase_90, r0_vals)
 
-    plt.figure()
-    # plt.title(titles[w])
+#     plt.figure()
+#     # plt.title(titles[w])
 
-    # For colours https://stats.stackexchange.com/questions/118033/best-series-of-colors-to-use-for-differentiating-series-in-publication-quality
-    plt.plot(r0_vals, i_list_no_behaviour, label="No behaviour", color="black")
-    plt.plot(r0_vals, i_list_base, label="BaD baseline", color="#88CCEE")
-    plt.plot(r0_vals, i_list_10, label="Doubled effect", color="#CC6677")
-    plt.plot(r0_vals, i_list_90, label="Quadrupled effect", color="#DDCC77")
+#     # For colours https://stats.stackexchange.com/questions/118033/best-series-of-colors-to-use-for-differentiating-series-in-publication-quality
+#     plt.plot(r0_vals, i_list_no_behaviour, label="No behaviour", color="black")
+#     plt.plot(r0_vals, i_list_base, label="BaD baseline", color="#88CCEE")
+#     plt.plot(r0_vals, i_list_10, label="Doubled effect", color="#CC6677")
+#     plt.plot(r0_vals, i_list_90, label="Quadrupled effect", color="#DDCC77")
 
-    plt.plot([1.4, 1.4], [0, 0.3], ":k")
-    plt.text(1.5, 0.25, "Flu-like")
-    plt.plot([5.4, 5.4], [0, 0.3], ":k")
-    plt.text(5.5, 0.1, "Covid-like")
+#     plt.plot([1.4, 1.4], [0, 0.3], ":k")
+#     plt.text(1.5, 0.25, "Influenza-like")
+#     plt.plot([5.4, 5.4], [0, 0.3], ":k")
+#     plt.text(5.5, 0.1, "Covid-like")
 
-    plt.xlabel("Disease transmissibility ($\\mathscr{R}_0^D$)")
-    plt.ylabel("Long-term disease prevalence")
+#     plt.xlabel("Disease transmissibility ($\\mathscr{R}_0^D$)")
+#     plt.ylabel("Long-term disease prevalence")
 
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18), ncol=4)
-    plt.savefig(
-        f"../img/convergence/{titles[w]}.png", dpi=600, bbox_inches="tight")
-    plt.show()
+#     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18), ncol=4)
+#     plt.savefig(
+#         f"../img/convergence/{titles[w]}.png", dpi=600, bbox_inches="tight")
+#     plt.show()
 
 # %%
 
 
 def create_plot(base_params, focus_param):
+
+    r0_vals = np.arange(0.1, 10.1, step=0.1)
 
     baseline_params = dict(base_params)
 
@@ -327,15 +327,15 @@ def create_plot(base_params, focus_param):
         plt.plot(r0_vals, i_list_10, label="Doubled effect", color="#CC6677")
         plt.plot(r0_vals, i_list_90, label="Quadrupled effect", color="#DDCC77")
 
-    plt.plot([1.4, 1.4], [0, i_list_no_behaviour.max()], ":k")
-    plt.text(1.5, i_list_no_behaviour.max(), "Flu-like")
-    plt.plot([5.4, 5.4], [0, i_list_no_behaviour.max()], ":k")
-    plt.text(5.5, i_list_no_behaviour.max(), "Covid-like")
+    plt.plot([1.5, 1.5], [0, i_list_no_behaviour.max()+0.001], ":k")
+    plt.text(1.6, i_list_no_behaviour.max()+0.001, "Influenza-like")
+    plt.plot([8.2, 8.2], [0, i_list_no_behaviour.max()+0.001], ":k")
+    plt.text(8.3, i_list_no_behaviour.max()+0.001, "Covid-like")
 
     plt.xlabel("Disease characteristic ($\\mathscr{R}_0^D$)")
     plt.ylabel("Endemic disease prevalence ($I^*$)")
 
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18), ncol=4)
+    # plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18), ncol=4)
     plt.savefig(f"../img/target_intervention/{titles[w]}.png",
                 dpi=600, bbox_inches="tight")
     plt.show()
@@ -363,7 +363,7 @@ def run_model(params, R0):
     return M.get_I(), M.get_S()
 
 
-def create_phase_plot(base_params, focus_param, R0d=5.4):
+def create_phase_plot(base_params, focus_param, R0d=8.2):
 
     baseline_params = dict(base_params)
     baseline_params["infectious_period"] = 7
@@ -434,9 +434,9 @@ def create_phase_plot(base_params, focus_param, R0d=5.4):
 
 for w in ["B_social", "B_fear", "B_const", "N_social", "N_const"]:
     create_plot(baseline_params, w)
-    create_phase_plot(baseline_params, w)
-    create_phase_plot(baseline_params, w, R0d=1.4)
+    # create_phase_plot(baseline_params, w)
+    # create_phase_plot(baseline_params, w, R0d=1.4)
 
 # %%
 
-s, i = run_model(baseline_params, 5.4)
+# s, i = run_model(baseline_params, 5.4)

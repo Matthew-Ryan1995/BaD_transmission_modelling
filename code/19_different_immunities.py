@@ -18,11 +18,6 @@ import matplotlib.ticker as tkr
 from BaD import *
 # %%
 
-# inf_per = 1
-# immune_period = 13
-# R0d = 8.4
-# todo: Add time direction to plots, fix legend and labels, better color?
-
 
 def create_params(R0=5, p=1, c=1):
     model_params = load_param_defaults()
@@ -33,62 +28,57 @@ def create_params(R0=5, p=1, c=1):
     return model_params
 
 
-# m_params = create_params(R0=R0d)
-
+save_file = True
 # %%
 
-# Sb = 1e-3
-# In = 1e-3
-# Ib = Rb = 0
-# Rn = [0.0, 0.2, 0.4, 0.6]  # , 0.8, 0.95]
+# Add arrows
+# From https://stackoverflow.com/questions/34017866/arrow-on-a-line-plot
 
-# t_start, t_end = [0, 50]
 
-# res_i = list()
-# res_s = list()
-# M = bad(**m_params)
-# for rn in Rn:
-#     Sn = 1-Sb-In-Ib-Rb-rn
-#     IC = [Sn, Sb, In, Ib, rn, Rb]
+def add_arrow(line, position=None, direction='right', size=15, color=None, linestyle=None):
+    """
+    add an arrow to a line.
 
-#     M.run(IC, t_start, t_end, t_step=0.1)
+    line:       Line2D object
+    position:   x-position of the arrow. If None, mean of xdata is taken
+    direction:  'left' or 'right'
+    size:       size of the arrow in fontsize points
+    color:      if None, line color is taken.
+    """
+    if color is None:
+        color = line.get_color()
+    if linestyle is None:
+        linestyle = line.get_linestyle()
 
-#     res_i.append(M.get_I())
-#     res_s.append(M.get_S())
+    xdata = line.get_xdata()
+    ydata = line.get_ydata()
 
-# %%
+    if position is None:
+        position = xdata.mean()
+    # find closest index
+    start_ind = np.argmin(np.absolute(xdata - position))
+    if direction == 'right':
+        end_ind = start_ind + 1
+    else:
+        end_ind = start_ind - 1
 
-# plt.figure()
-# plt.title(
-#     f"Phase plane, p={m_params['inf_B_efficacy']}, c={m_params['susc_B_efficacy']}")
-# for idx, ii in enumerate(res_i):
-#     ss = res_s[idx]
-#     plt.plot(ss, ii, label=str(Rn[idx]))
-# plt.xlabel('S')
-# plt.ylabel('I')
-# plt.legend()
-# plt.show()
+    line.axes.annotate('',
+                       xytext=(xdata[start_ind], ydata[start_ind]),
+                       xy=(xdata[end_ind], ydata[end_ind]),
+                       arrowprops=dict(arrowstyle="->",
+                                       color=color, lw=3),
+                       size=size
+                       )
 
-# plt.figure()
-# plt.title(
-#     f"Time series, p={m_params['inf_B_efficacy']}, c={m_params['susc_B_efficacy']}")
-# for idx, ii in enumerate(res_i):
-#     plt.plot(ii, label=str(Rn[idx]))
-# plt.xlabel('t')
-# plt.ylabel('I')
-# plt.legend()
-# plt.show()
 
-# %%
-
-def generate_phase_plane(disease_type, save=False):
+def generate_phase_plane(disease_type, position_b=0.95, position_n=0.95, save=False):
     if disease_type == "covid_like":
-        R0 = 8.4
-        title = "Covid-like illness ($\\mathscr{R}_0^D = 8.4$)"
+        R0 = 8.2
+        title = "Covid-like illness ($\\mathscr{R}_0^D = 8.2$)"
         text_factor = 1.2
     elif disease_type == "flu_like":
-        R0 = 1.4
-        title = "Flu-like illness ($\\mathscr{R}_0^D = 1.4$)"
+        R0 = 1.5
+        title = "Influenza-like illness ($\\mathscr{R}_0^D = 1.5$)"
         text_factor = 2
     else:
         R0 = disease_type
@@ -99,26 +89,16 @@ def generate_phase_plane(disease_type, save=False):
     Sb = 1e-3
     In = 1e-3
     Ib = Rb = 0
-    # Rn = [0.0, 0.2, 0.4, 0.6]#, 0.8, 0.95]
-    Rn = [0.0]  # , 0.5, 0.95]
-
-    # # c_range = np.arange(0 + 1e-5, 1-1e-5, step=1/len(unique_lbls))
-    # c_range = np.arange(0 + 1e-5, 1-1e-5, step=1/len(Rn))
-
-    # cmaps = list()
-
-    # for j in c_range:
-    #     if j > 0.7:
-    #         j += 0.1
-    #     cmaps.append(clrs.ListedColormap(plt.cm.rainbow(j)))
-    #     # cmaps.append(clrs.ListedColormap(plt.cm.tab20(j)))
+    Rn = [0.0]
 
     t_start, t_end = [0, 900]
 
     res_i = list()
     res_s = list()
+    res_b = list()
     res_i_n = list()
     res_s_n = list()
+    res_b_n = list()
     M = bad(**m_params)
     M2 = bad(**m_params)
     M2.update_params(**{"inf_B_efficacy": 0.0, "susc_B_efficacy": 0.0})
@@ -131,8 +111,10 @@ def generate_phase_plane(disease_type, save=False):
 
         res_i.append(M.get_I())
         res_s.append(M.get_S())
+        res_b.append(M.get_B())
         res_i_n.append(M2.get_I())
         res_s_n.append(M2.get_S())
+        res_b_n.append(M2.get_B())
 
     plt.figure()
     plt.title(title)
@@ -140,17 +122,41 @@ def generate_phase_plane(disease_type, save=False):
         ss = res_s[idx]
         ii_n = res_i_n[idx]
         ss_n = res_s_n[idx]
-        plt.plot(ss, ii, label="Fully protective behaviour", color="black")
-        plt.plot(ss_n, ii_n, linestyle=":", color="black",
-                 label="No protective behaviour")
-    plt.xlabel('S')
-    plt.ylabel('I')
-    plt.legend()
-    plt.show()
+        l1 = plt.plot(ss, ii, label="Fully protective behaviour",
+                      color="blue")[0]
+        add_arrow(l1, color="blue", position=position_b)
+        l2 = plt.plot(ss_n, ii_n, linestyle=":", color="orangered",
+                      label="No protective behaviour")[0]
+        add_arrow(l2, color="orangered", position=position_n,
+                  linestyle=":", size=20)
+    plt.xlabel('Proportion of susceptibles (S)')
+    plt.ylabel('Proportion of infectious (I)')
+    # plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18), ncol=2)
+    if save:
+        plt.savefig(
+            f"../img/endemic_difference/phase_plane_{disease_type}.png",
+            bbox_inches="tight", dpi=600)
+        plt.close()
+    else:
+        plt.show()
+
+    # plt.figure()
+    # plt.title(title + " - B")
+    # for idx, ii in enumerate(res_i):
+    #     ss = res_b[idx]
+    #     ii_n = res_i_n[idx]
+    #     ss_n = res_b_n[idx]
+    #     plt.plot(ss, ii, label="Fully protective behaviour", color="blue")
+    #     plt.plot(ss_n, ii_n, linestyle=":", color="orangered",
+    #              label="No protective behaviour")
+    # plt.xlabel('B')
+    # plt.ylabel('I')
+    # plt.legend()
+    # plt.show()
 
 
-generate_phase_plane("covid_like")
-generate_phase_plane("flu_like")
+generate_phase_plane("covid_like", position_b=0.8, save=save_file)
+generate_phase_plane("flu_like", position_b=0.95, save=save_file)
 
 # plt.figure()
 # plt.title(
