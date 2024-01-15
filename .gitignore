@@ -51,6 +51,7 @@ Thumbs.db
 
 # R
 .Rproj
+.Rhistory
 
 .spyproject/*
 .spyproject

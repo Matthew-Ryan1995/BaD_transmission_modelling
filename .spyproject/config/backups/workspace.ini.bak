@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['code/BaD.py', 'code/model_parameters.json', 'README.md', 'code/16_varying_behaviour_effects_endemic_i.py']
+recent_files = ['../../19_summer_research_projects/2023/Jinjing/face_mask_predictors/help_function/clean_dataset.py']
 
 [main]
 version = 0.2.0
