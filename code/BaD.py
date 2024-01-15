@@ -19,11 +19,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as clrs
 import matplotlib.ticker as tkr
 import json
-import os
-import time
 
-# working_path = "/Users/rya200/Library/CloudStorage/OneDrive-CSIRO/Documents/03_projects/reid-mask_sir_toymodel"
-# os.chdir(working_path)
 
 # %% Class definitions
 

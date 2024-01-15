@@ -2,13 +2,12 @@
 
 ### What is this repository for? ###
 
-* Quick summary: Containing code and documentation for initial toy SIR model including mask compartments
-* Version: 0.0.1
+Code to reproduce the results for the paper ***A BaD transmission model: Incorporating the Health Belief Model for human behaviour into a simple transmission model***.
 
 # Code to run for results
 
-- 13_stead_state_regions.py - stead_state_regions/
-- 14_r0b_vs_r0d.py - r0_vs_rb/
-- 16_varying_behaviour_effect_endemic_i.py - targeted_interventions/
-- 21_difference_in_endemic.py - endemic_differences/
-- 19_different_immunities.py - endemic_differences
+- Functions and class definitions found in `BaD.py`
+- Default parameters for model: `model_parameters.json`
+- Code to reproduce Figure 3: `01_stead_state_regions.py`
+- Code to reproduce Figure 4: `02_targeted_interventions.py`
+- Code to reproduce Figure 5: `03_difference_phase_planes.py` and `04_endemic_disease_difference.py`
