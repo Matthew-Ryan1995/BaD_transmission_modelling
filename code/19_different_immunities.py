@@ -117,7 +117,7 @@ def generate_phase_plane(disease_type, position_b=0.95, position_n=0.95, save=Fa
         res_b_n.append(M2.get_B())
 
     plt.figure()
-    plt.title(title)
+    # plt.title(title)
     for idx, ii in enumerate(res_i):
         ss = res_s[idx]
         ii_n = res_i_n[idx]

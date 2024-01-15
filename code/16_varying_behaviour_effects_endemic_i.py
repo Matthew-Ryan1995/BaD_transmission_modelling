@@ -315,7 +315,7 @@ def create_plot(base_params, focus_param):
         i_list_90, bb = return_i_b(increase_90, r0_vals)
 
     plt.figure()
-    plt.title(titles[w])
+    # plt.title(titles[w])
 
     # For colours https://stats.stackexchange.com/questions/118033/best-series-of-colors-to-use-for-differentiating-series-in-publication-quality
     plt.plot(r0_vals, i_list_no_behaviour, label="No behaviour", color="black")
@@ -410,7 +410,7 @@ def create_phase_plot(base_params, focus_param, R0d=8.2):
         i_4, s_4 = run_model(increase_4, R0d)
 
     plt.figure()
-    plt.title(titles[w] + ", $\\mathscr{R}_0^D=$" + f"{R0d}")
+    # plt.title(titles[w] + ", $\\mathscr{R}_0^D=$" + f"{R0d}")
 
     # For colours https://stats.stackexchange.com/questions/118033/best-series-of-colors-to-use-for-differentiating-series-in-publication-quality
     plt.plot(s_no_behaviour, i_no_behaviour,

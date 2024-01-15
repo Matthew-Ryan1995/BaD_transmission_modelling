@@ -92,63 +92,76 @@ R0 = np.array(R0)
 
 def find_i_diff(params):
 
-    beta = params["transmission"]
-    gamma = 1/params["infectious_period"]
-    nu = 1/params["immune_period"]
-
-    n_behav_I = nu*(beta-gamma)/(beta*(gamma+nu))
+    params_no_behaviour = dict(params)
+    params_no_behaviour["susc_B_efficacy"] = 0.0
+    params_no_behaviour["inf_B_efficacy"] = 0.0
 
     params_full_behaviour = dict(params)
     params_full_behaviour["susc_B_efficacy"] = 1.0
     params_full_behaviour["inf_B_efficacy"] = 1.0
 
+    ss_no_behav, _ = find_ss(params_no_behaviour)
     ss_behav, _ = find_ss(params_full_behaviour)
 
-    I_diff = n_behav_I - ss_behav[[2, 3]].sum()
+    I_diff = ss_no_behav[[2, 3]].sum() - ss_behav[[2, 3]].sum()
     return I_diff
 
 
-def create_params(w, R0=5):
+def create_params(Bstar, R0=5):
     model_params = load_param_defaults()
     model_params["transmission"] = R0
-    model_params["B_social"] = w
-    model_params["susc_B_efficacy"] = 1.0
-    model_params["inf_B_efficacy"] = 1.0
+    # model_params["infectious_period"] = 1/1
+    # model_params["immune_period"] = 1/0.4
+    # model_params["av_lifespan"] = 0  # Turning off demography
+    model_params["susc_B_efficacy"] = 0.
+    model_params["inf_B_efficacy"] = 0.
+    model_params["N_social"] = 0.
+    model_params["B_fear"] = 0.
+    model_params["B_const"] = 0.
+    # model_params["transmission"] = R0
+    # model_params["infectious_period"] = 1/1
+    # model_params["immune_period"] = 1/0.5
+    # model_params["av_lifespan"] = 0  # Turning off demography
+    # model_params["susc_B_efficacy"] = 0.
+    # model_params["inf_B_efficacy"] = 0.
+    # model_params["N_social"] = 0.
+    # model_params["B_fear"] = 0.
+    # model_params["B_const"] = 0.
+
+    if Bstar == 1:
+        model_params["N_const"] = 0
+        model_params["B_social"] = 1
+    else:
+        model_params["B_social"] = 1/(1-Bstar)
+        model_params["N_const"] = 1.
 
     return model_params
 
 
 def prevalence_change_plot(disease_type, target_reduction=20, save=False):
     if disease_type == "covid_like":
-        R0 = 8.2
-        title = "Covid-like illness ($\\mathscr{R}_0^D = 8.2$)"
+        R0 = 8.4
+        title = "Covid-like illness ($\\mathscr{R}_0^D = 8.4$)"
         text_factor = 1.2
     elif disease_type == "flu_like":
-        R0 = 1.5
-        title = "Influenza-like illness ($\\mathscr{R}_0^D = 1.5$)"
+        R0 = 1.4
+        title = "Flu-like illness ($\\mathscr{R}_0^D = 1.4$)"
         text_factor = 2
     else:
         R0 = disease_type
         title = "$\\mathscr{R}_0^D =$"+f"{R0}"
 
-    init_param = create_params(w=0.4, R0=R0)
-    ss, _ = find_ss(init_param)
-    B_vert = ss[[1, 3, 5]].sum()
-    print(f"Bvert is {B_vert.round(2)}")
+    B_min = 0.0
+    B_max = 1.0
+    B_step = 0.01
+    B_star_range = np.arange(B_min, B_max + B_step, step=B_step)
+    I_diff = list()
 
-    B_star_range = [0]
-    ww = np.arange(0, 10, step=0.1)
-    I_diff = [0]
-
-    for w in ww:
-        model_params = create_params(w=w, R0=R0)
-        tmp, _ = find_ss(model_params)
-        B_star_range.append(tmp[[1, 3, 5]].sum())
+    for b in B_star_range:
+        model_params = create_params(b, R0=R0)
 
         I_diff.append(find_i_diff(model_params))
-    B_star_range.append(1.0)
-    B_star_range = np.array(B_star_range)
-    I_diff.append(max(I_diff))
+
     I_diff = np.array(I_diff)
 
     fig, ax1 = plt.subplots()
@@ -158,7 +171,6 @@ def prevalence_change_plot(disease_type, target_reduction=20, save=False):
     ax1.set_ylabel(
         'Absolute difference in \nendemic disease prevalence', color=color)
     ax1.plot(B_star_range, I_diff, color="black", label="covid-like")
-    # ax1.scatter(B_star_range, I_diff, color="red")
     ax1.tick_params(axis='y', labelcolor=color)
     plt.xlim(0, 1)
 
@@ -185,7 +197,6 @@ def prevalence_change_plot(disease_type, target_reduction=20, save=False):
                    color=color, rotation=-90, va="center")
     ax2.plot(B_star_range, I_diff/I_diff.max() * 100, color="black")
     ax2.tick_params(axis='y', labelcolor=color)
-    ax2.plot([B_vert, B_vert], [0, 100], ":k")
     # ax2.plot([0, 1], [20, 20], ":k")
     # ax2.plot([B_star_target, B_star_target], [0, 100], ":k")
     # ax2.plot([B_star_100, B_star_100], [0, 100], ":k")
@@ -195,7 +206,7 @@ def prevalence_change_plot(disease_type, target_reduction=20, save=False):
     #          horizontalalignment='left', verticalalignment='center')
 
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    # plt.title(title)
+    plt.title(title)
     if save:
         plt.savefig(
             f"../img/endemic_difference/difference_plot_{disease_type}.png",
@@ -205,9 +216,8 @@ def prevalence_change_plot(disease_type, target_reduction=20, save=False):
         plt.show()
 
 
-save_now = True
-prevalence_change_plot("covid_like", save=save_now)
-prevalence_change_plot("flu_like", save=save_now)
+prevalence_change_plot("covid_like", save=False)
+prevalence_change_plot("flu_like", save=False)
 # plt.figure()
 # plt.plot(B_star_range, I_diff)
 # plt.xlabel("$B^*$")
