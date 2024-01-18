@@ -15,6 +15,15 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as clrs
 import matplotlib.ticker as tkr
 from BaD import *
+
+params = {"ytick.color": "black",
+          "xtick.color": "black",
+          "axes.labelcolor": "black",
+          "axes.edgecolor": "black",
+          # "text.usetex": True,
+          "font.family": "serif"}
+plt.rcParams.update(params)
+plt.rcParams['mathtext.fontset'] = 'dejavuserif'
 # %% parameters
 
 save_file = True

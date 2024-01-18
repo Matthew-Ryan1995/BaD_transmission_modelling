@@ -17,6 +17,16 @@ import matplotlib.colors as clrs
 import matplotlib.ticker as tkr
 from BaD import *
 
+
+params = {"ytick.color": "black",
+          "xtick.color": "black",
+          "axes.labelcolor": "black",
+          "axes.edgecolor": "black",
+          # "text.usetex": True,
+          "font.family": "serif"}
+plt.rcParams.update(params)
+plt.rcParams['mathtext.fontset'] = 'dejavuserif'
+
 # %% functions
 
 # Create steady state regions based on parameter inputs
@@ -113,6 +123,8 @@ def create_ss_plots_2(input_params, r0_b, r0_d, grid_vals, ss_categories, save=F
     else:
         y_line = [0, grid_vals[1].max()]
 
+    fontname = {'fontname': "serif"}
+
     code_to_label = {
         # "transmission": "beta",
         "infectious_period": "gamma_inv",
@@ -199,15 +211,16 @@ def create_ss_plots_2(input_params, r0_b, r0_d, grid_vals, ss_categories, save=F
         plt.text(0.5, 0.5, "$E_{00}$", size=16, va="center", ha="center")
         if np.isclose(input_params["B_fear"], 0):
             plt.text(x_pos, 0.5, "$E_{0D}$",
-                     size=16, va="center", ha="center")
+                     size=16, va="center", ha="center", **fontname)
 
-    plt.text(0.5, y_pos, "$E_{B0}$", size=16, va="center", ha="center")
+    plt.text(0.5, y_pos, "$E_{B0}$", size=16,
+             va="center", ha="center", family="serif")
     if np.isclose(input_params["B_fear"], 0):
         plt.text(x_pos, y_pos, "$E_{BD}$",
-                 size=16, va="center", ha="center")
+                 size=16, va="center", ha="center", **fontname)
     else:
         plt.text(x_pos, y_pos-1, "$E_{BD}$",
-                 size=16, va="center", ha="center")
+                 size=16, va="center", ha="center", **fontname)
 
     if save:
         plt.savefig("../img/" + save_lbl + append_txt +
